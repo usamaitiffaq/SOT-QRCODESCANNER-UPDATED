@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragments.ShowScanCode">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cl_topbar"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/appBlue"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_default="percent"
+        app:layout_constraintHeight_percent="0.12"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_default="percent"
+        app:layout_constraintWidth_percent="1">
+
+        <TextView
+            android:id="@+id/tvTop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_5sdp"
+            android:fontFamily="@font/poppins_semibold"
+            android:src="@drawable/ic_close"
+            android:text="@string/Scan_result"
+            android:textColor="@color/white"
+            android:textSize="@dimen/_16sdp"
+            android:paddingHorizontal="@dimen/_20sdp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/iv_back"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/iv_back"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="@dimen/_10sdp"
+            android:src="@drawable/ic_back"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/ivdelete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="20dp"
+            android:src="@drawable/ic_delete"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/ivShare"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/_10sdp"
+            android:src="@drawable/ic_share"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/ivdelete"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/white" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <FrameLayout
+        android:id="@+id/layoutAdNative"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/_10sdp"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:padding="@dimen/_5sdp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cl_topbar"/>
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rounded_bg"
+        android:layout_margin="@dimen/_10sdp"
+        app:layout_constraintTop_toBottomOf="@+id/layoutAdNative">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/_7sdp"
+                android:layout_marginStart="@dimen/_7sdp"
+                android:layout_marginTop="@dimen/_7sdp"
+                android:layout_marginEnd="@dimen/_7sdp">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/cl_qrimage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/rounded_white_bg"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <ImageView
+                        android:id="@+id/qrCodeImageView"
+                        android:layout_width="@dimen/_120sdp"
+                        android:layout_height="120dp"
+                        android:layout_margin="@dimen/_20sdp"
+                        android:contentDescription="@string/qr_code"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/cl_Qrdetail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingVertical="@dimen/_5sdp"
+                    android:layout_marginVertical="@dimen/_10sdp"
+                    app:layout_constraintTop_toBottomOf="@+id/cl_qrimage">
+
+                    <ImageView
+                        android:id="@+id/img_qr"
+                        android:layout_width="@dimen/_20sdp"
+                        android:layout_height="@dimen/_20sdp"
+                        android:contentDescription="@string/qr_code"
+                        android:scaleType="fitXY"
+                        android:src="@drawable/ic_qr_demo"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/txt_qrcode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="@dimen/_10sdp"
+                        android:fontFamily="@font/poppins_medium"
+                        android:text="@string/QR_Code"
+                        android:textAlignment="center"
+                        android:textColor="@color/black"
+                        android:textSize="12sp"
+                        app:layout_constraintBottom_toBottomOf="@+id/img_qr"
+                        app:layout_constraintStart_toEndOf="@+id/img_qr"
+                        app:layout_constraintTop_toTopOf="@+id/img_qr" />
+
+                    <TextView
+                        android:id="@+id/tvdateandtime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/poppins_medium"
+                        android:text="@string/dummy_date_time"
+                        android:textColor="@color/star_black"
+                        android:textSize="12sp"
+                        app:layout_constraintBottom_toBottomOf="@+id/txt_qrcode"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="@+id/txt_qrcode" />
+
+                    <TextView
+                        android:id="@+id/textQRCode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/_15sdp"
+                        android:fontFamily="@font/poppins_medium"
+                        android:gravity="center"
+                        android:maxLines="2"
+                        android:text="@string/QR_Code"
+                        android:textColor="@color/gray_shade"
+                        android:textSize="12sp"
+                        android:layout_marginStart="-10dp"
+                        app:layout_constraintStart_toEndOf="@+id/txt_qrcode"
+                        app:layout_constraintTop_toBottomOf="@+id/txt_qrcode" />
+
+
+                    <TextView
+                        android:id="@+id/textViewQRCode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/_15sdp"
+                        android:fontFamily="@font/lexend"
+                        android:gravity="center"
+                        android:text="@string/dummy_code_result"
+                        android:textColor="@color/star_black"
+                        android:textSize="12sp"
+                        app:layout_constraintStart_toEndOf="@+id/textQRCode"
+                        app:layout_constraintTop_toBottomOf="@+id/txt_qrcode" />
+
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/cl_sites"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_100sdp"
+                    android:layout_marginTop="@dimen/_5sdp"
+                    android:background="@drawable/rounded_white_bg"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/cl_Qrdetail">
+
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rv_scanresults"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        tools:listitem="@layout/item_scan_results"/>
+
+
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </ScrollView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+
+
+<!--<TextView-->
+<!--android:id="@+id/qrcodeType"-->
+<!--android:layout_width="wrap_content"-->
+<!--android:layout_height="wrap_content"-->
+<!--android:layout_marginTop="@dimen/_10sdp"-->
+<!--android:fontFamily="@font/lexend"-->
+<!--android:text="@string/website"-->
+<!--android:textColor="@color/appBlue"-->
+<!--app:layout_constraintEnd_toEndOf="parent"-->
+<!--app:layout_constraintStart_toStartOf="parent"-->
+<!--app:layout_constraintTop_toBottomOf="@id/textViewQRCode" />-->
+
+
+<!--<TextView-->
+<!--android:id="@+id/notetext"-->
+<!--android:layout_width="wrap_content"-->
+<!--android:layout_height="wrap_content"-->
+<!--android:layout_marginTop="@dimen/_10sdp"-->
+<!--android:fontFamily="@font/lexend"-->
+<!--android:text="this is my code"-->
+<!--android:textColor="@color/appBlue"-->
+<!--app:layout_constraintEnd_toEndOf="parent"-->
+<!--app:layout_constraintStart_toStartOf="parent"-->
+<!--app:layout_constraintTop_toBottomOf="@id/qrcodeType" />-->
+
+
+<!--<androidx.constraintlayout.widget.ConstraintLayout-->
+<!--android:id="@+id/constraintLayout"-->
+<!--android:layout_width="match_parent"-->
+<!--android:layout_height="wrap_content"-->
+<!--android:layout_marginTop="@dimen/_20sdp"-->
+<!--app:layout_constraintEnd_toEndOf="parent"-->
+<!--app:layout_constraintStart_toStartOf="parent"-->
+<!--app:layout_constraintTop_toBottomOf="@id/tvdateandtime">-->
+
+<!--<TextView-->
+<!--    android:id="@+id/tvNotes"-->
+<!--    android:layout_width="wrap_content"-->
+<!--    android:layout_height="wrap_content"-->
+<!--    android:drawableTop="@drawable/ic_note"-->
+<!--    android:drawablePadding="@dimen/_3sdp"-->
+<!--    android:fontFamily="@font/lexend"-->
+<!--    android:text="@string/notes"-->
+<!--    android:textColor="@color/black"-->
+<!--    app:layout_constraintBottom_toBottomOf="parent"-->
+<!--    app:layout_constraintEnd_toStartOf="@+id/tvCopy"-->
+
+<!--    app:layout_constraintStart_toStartOf="parent"-->
+<!--    app:layout_constraintTop_toTopOf="parent" />-->
+
+
+<!--<TextView-->
+<!--    android:id="@+id/tvCopy"-->
+<!--    android:layout_width="wrap_content"-->
+<!--    android:layout_height="wrap_content"-->
+<!--    android:drawableTop="@drawable/ic_copy"-->
+<!--    android:drawablePadding="@dimen/_3sdp"-->
+<!--    android:fontFamily="@font/lexend"-->
+<!--    android:text="@string/copy"-->
+<!--    android:textColor="@color/black"-->
+<!--    app:layout_constraintBottom_toBottomOf="parent"-->
+<!--    app:layout_constraintEnd_toStartOf="@+id/tvShare"-->
+<!--    app:layout_constraintHorizontal_bias="0.5"-->
+<!--    app:layout_constraintStart_toEndOf="@+id/tvNotes"-->
+<!--    app:layout_constraintTop_toTopOf="parent" />-->
+
+<!--<TextView-->
+<!--    android:id="@+id/tvShare"-->
+<!--    android:layout_width="wrap_content"-->
+<!--    android:layout_height="wrap_content"-->
+<!--    android:drawableTop="@drawable/ic_share"-->
+<!--    android:drawablePadding="@dimen/_3sdp"-->
+<!--    android:fontFamily="@font/lexend"-->
+<!--    android:text="@string/share"-->
+<!--    android:textColor="@color/black"-->
+<!--    app:layout_constraintBottom_toBottomOf="parent"-->
+<!--    app:layout_constraintEnd_toEndOf="parent"-->
+<!--    app:layout_constraintStart_toEndOf="@id/tvCopy"-->
+<!--    app:layout_constraintTop_toTopOf="parent" />-->
+
+
+<!--</androidx.constraintlayout.widget.ConstraintLayout>-->
+
+<!--<androidx.appcompat.widget.AppCompatButton-->
+<!--android:id="@+id/btnSave"-->
+<!--android:layout_width="160dp"-->
+<!--android:layout_height="34dp"-->
+<!--android:layout_marginTop="@dimen/_20sdp"-->
+<!--android:background="@drawable/rounded_bg"-->
+<!--android:backgroundTint="@color/appBlue"-->
+<!--android:drawableStart="@drawable/ic_save_data"-->
+<!--android:drawablePadding="@dimen/_10sdp"-->
+<!--android:fontFamily="@font/lexend"-->
+<!--android:paddingStart="@dimen/_10sdp"-->
+<!--android:paddingEnd="@dimen/_10sdp"-->
+<!--android:text="@string/save_qr"-->
+<!--android:textAlignment="viewStart"-->
+<!--android:textAllCaps="false"-->
+<!--android:textColor="@color/white"-->
+<!--app:layout_constraintEnd_toStartOf="@id/btnOpenWebsite"-->
+<!--app:layout_constraintStart_toStartOf="parent"-->
+<!--app:layout_constraintTop_toBottomOf="@+id/constraintLayout" />-->
+
+<!--<androidx.appcompat.widget.AppCompatButton-->
+<!--android:id="@+id/btnOpenWebsite"-->
+<!--android:layout_width="160dp"-->
+<!--android:layout_height="34dp"-->
+<!--android:layout_marginTop="@dimen/_20sdp"-->
+<!--android:background="@drawable/rounded_bg"-->
+<!--android:backgroundTint="@color/appBlue"-->
+<!--android:drawableStart="@drawable/browser"-->
+<!--android:fontFamily="@font/lexend"-->
+<!--android:paddingStart="@dimen/_10sdp"-->
+<!--android:paddingEnd="@dimen/_10sdp"-->
+<!--android:text="@string/open_website"-->
+<!--android:textAllCaps="false"-->
+<!--android:textColor="@color/white"-->
+<!--app:layout_constraintEnd_toEndOf="parent"-->
+<!--app:layout_constraintStart_toEndOf="@+id/btnSave"-->
+<!--app:layout_constraintTop_toBottomOf="@+id/constraintLayout" />-->

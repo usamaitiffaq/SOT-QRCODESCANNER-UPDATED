@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "637914661793",
+    "project_id": "sot-qrcode",
+    "storage_bucket": "sot-qrcode.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:637914661793:android:c6c526cc309e127e6381e0",
+        "android_client_info": {
+          "package_name": "com.qrcodescanner.barcodereader.qrgenerator"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDcKsp5EeNW4fUwaiCji0kvmKlI43dhLWA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

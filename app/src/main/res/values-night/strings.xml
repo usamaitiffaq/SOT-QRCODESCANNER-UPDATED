@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="favourite">Favorite</string>
+    <string name="Tips">Tips</string>
+    <string name="TooBlurry">Too Blurry</string>
+    <string name="Toobright">Too bright</string>
+    <string name="Excellent">Excellent</string>
+    <string name="shape">Shape</string>
+    <string name="position">Position</string>
+</resources>

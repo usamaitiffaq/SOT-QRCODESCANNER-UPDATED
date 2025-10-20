@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="@dimen/_20sdp">
+
+
+
+  <androidx.recyclerview.widget.RecyclerView
+      android:id="@+id/rv_tab_colors"
+      android:layout_width="match_parent"
+      android:layout_height="@dimen/_30sdp"
+      android:paddingVertical="@dimen/_3sdp"
+      android:layout_marginVertical="@dimen/_2sdp"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent"
+      tools:listitem="@layout/item_tab"/>
+  <androidx.constraintlayout.widget.ConstraintLayout
+      android:id="@+id/cl_color_roots_forground"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginVertical="@dimen/_5sdp"
+      app:layout_constraintTop_toBottomOf="@+id/rv_tab_colors"
+      app:layout_constraintStart_toStartOf="parent">
+
+
+    <TextView
+        android:id="@+id/txt_solid_color"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/solidcolor"
+        android:textSize="@dimen/_14sdp"
+        android:fontFamily="@font/poppins_medium"
+        android:layout_marginVertical="@dimen/_7sdp"
+        android:layout_marginStart="@dimen/_15sdp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:textColor="@color/black"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_solid_color"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/txt_solid_color"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:paddingVertical="@dimen/_2sdp"
+        android:paddingHorizontal="@dimen/_10sdp"
+        android:layout_marginStart="@dimen/_5sdp"
+        android:layout_marginVertical="@dimen/_2sdp"
+        android:orientation="horizontal"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/item_solid_colors"/>
+
+    <TextView
+        android:id="@+id/txt_gradient"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/gradient"
+        android:textSize="@dimen/_14sdp"
+        android:fontFamily="@font/poppins_medium"
+        android:layout_marginVertical="@dimen/_7sdp"
+        android:layout_marginStart="@dimen/_15sdp"
+        app:layout_constraintTop_toBottomOf="@+id/rv_solid_color"
+        app:layout_constraintStart_toStartOf="parent"
+        android:textColor="@color/black"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_gradiant"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/txt_gradient"
+        app:layout_constraintStart_toStartOf="@+id/txt_gradient"
+        android:paddingVertical="@dimen/_2sdp"
+        android:layout_marginVertical="@dimen/_2sdp"
+        tools:listitem="@layout/item_gradient_colors"/>
+
+    <TextView
+        android:id="@+id/txt_image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/Image"
+        android:textSize="@dimen/_14sdp"
+        android:fontFamily="@font/poppins_medium"
+        android:layout_marginVertical="@dimen/_7sdp"
+        android:layout_marginStart="@dimen/_15sdp"
+        app:layout_constraintTop_toBottomOf="@+id/rv_gradiant"
+        app:layout_constraintStart_toStartOf="parent"
+        android:textColor="@color/black"/>
+
+    <ImageView
+        android:id="@+id/iv_browseImage"
+        android:layout_width="@dimen/_35sdp"
+        android:layout_height="@dimen/_35sdp"
+        android:layout_marginHorizontal="@dimen/_10sdp"
+        android:layout_marginStart="@dimen/_15sdp"
+        android:src="@drawable/ic_browseimage"
+        app:layout_constraintTop_toBottomOf="@+id/txt_image"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_foreground_image"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txt_image"
+        app:layout_constraintStart_toEndOf="@+id/iv_browseImage"
+        android:paddingVertical="@dimen/_2sdp"
+        android:paddingHorizontal="@dimen/_3sdp"
+        android:layout_marginHorizontal="@dimen/_7sdp"
+        android:orientation="vertical" />
+
+  </androidx.constraintlayout.widget.ConstraintLayout>
+
+  <androidx.constraintlayout.widget.ConstraintLayout
+      android:id="@+id/cl_color_roots_background"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:visibility="gone"
+      app:layout_constraintBaseline_toTopOf="parent"
+      android:layout_marginVertical="@dimen/_7sdp"
+      app:layout_constraintTop_toBottomOf="@+id/rv_tab_colors"
+      app:layout_constraintStart_toStartOf="parent">
+
+
+    <TextView
+        android:id="@+id/txt_light_color"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/light_color"
+        android:textSize="@dimen/_14sdp"
+        android:fontFamily="@font/poppins_medium"
+        android:layout_marginVertical="@dimen/_10sdp"
+        android:layout_marginStart="@dimen/_15sdp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:textColor="@color/black"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_light_color"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/txt_light_color"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:paddingVertical="@dimen/_2sdp"
+        android:paddingHorizontal="@dimen/_10sdp"
+        android:layout_marginHorizontal="@dimen/_15sdp"
+        android:layout_marginVertical="@dimen/_5sdp"
+        android:orientation="horizontal"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/item_solid_colors"/>
+
+    <TextView
+        android:id="@+id/txt_bgImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/image"
+        android:textSize="@dimen/_14sdp"
+        android:fontFamily="@font/poppins_medium"
+        android:layout_marginVertical="@dimen/_10sdp"
+        android:layout_marginStart="@dimen/_15sdp"
+        app:layout_constraintTop_toBottomOf="@+id/rv_light_color"
+        app:layout_constraintStart_toStartOf="parent"
+        android:textColor="@color/black"/>
+
+
+    <ImageView
+        android:id="@+id/iv_bgbrowseImage"
+        android:layout_width="@dimen/_35sdp"
+        android:layout_height="@dimen/_35sdp"
+        android:layout_marginHorizontal="@dimen/_10sdp"
+        android:layout_marginStart="@dimen/_15sdp"
+        android:src="@drawable/ic_browseimage"
+        app:layout_constraintTop_toBottomOf="@+id/txt_bgImage"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_background_image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txt_bgImage"
+        app:layout_constraintStart_toEndOf="@+id/iv_bgbrowseImage"
+        android:paddingVertical="@dimen/_2sdp"
+        android:paddingHorizontal="@dimen/_5sdp"
+        android:layout_marginHorizontal="@dimen/_7sdp"
+        android:orientation="vertical"
+        tools:listitem="@layout/item_background_images"/>
+
+  </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+
