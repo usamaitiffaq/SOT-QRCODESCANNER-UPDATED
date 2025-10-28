@@ -11,10 +11,10 @@
         android:id="@+id/constraintLayout5"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:background="@drawable/ic_toplayer"
+        android:background="@color/appBlue"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_default="percent"
-        app:layout_constraintHeight_percent="0.12"
+        app:layout_constraintHeight_percent="0.1"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintWidth_default="percent"
@@ -242,14 +242,30 @@
         app:layout_constraintEnd_toStartOf="@+id/ivShareResult" />
 
 
+    <View
+        android:id="@+id/separator"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_1sdp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/adViewContainer"
+        android:background="@color/black"/>
+
     <FrameLayout
-        android:id="@+id/bannerFr"
+        android:id="@+id/adViewContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:visibility="visible"
         app:layout_constraintStart_toStartOf="parent"
-        >
-        <include layout="@layout/new_shimmer" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/shimmerLayoutBanner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <include layout="@layout/size_banner_shimmer" />
+        </com.facebook.shimmer.ShimmerFrameLayout>
+
     </FrameLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -13,16 +13,6 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatTextView
-import apero.aperosg.firstopen.app.AperoFO
-import apero.aperosg.firstopen.app.AperoFOAdsConfig
-import apero.aperosg.firstopen.app.AperoFOCallback
-import apero.aperosg.firstopen.app.AperoFOConfig
-import apero.aperosg.firstopen.app.AperoLanguageUiConfig
-import apero.aperosg.firstopen.app.AperoOnboardPageConfig
-import apero.aperosg.firstopen.app.AperoOnboardUiConfig
-import apero.aperosg.firstopen.app.AperoSplashUiConfig
-import apero.aperosg.firstopen.app.AperoWelcomeUiConfig
-import apero.aperosg.firstopen.model.Language
 import com.airbnb.lottie.LottieAnimationView
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
@@ -79,165 +69,143 @@ class FirstOpenActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
         prefHelper = PrefHelper(this)
-        setupFirstOpenFlow()
         val sharedPreferences = getSharedPreferences("AppPreferences", Context.MODE_PRIVATE)
-        isNotificationEnabled = getSavedPermissionState("notificationPermission")
         Log.e("notificationee","isAllowed : $isNotificationEnabled")
 
     }
 
 
-    private fun setupFirstOpenFlow() {
-        val callback = object : AperoFOCallback() {
-            override fun onConsentResult(canLoadAds: Boolean) {
-                // Do something if user consent/doesn't consent
-            }
+//    private fun setupFirstOpenFlow() {
+//        val callback = object : AperoFOCallback() {
+//            override fun onConsentResult(canLoadAds: Boolean) {
+//                // Do something if user consent/doesn't consent
+//            }
+//
+//            override fun onLanguageConfirm(language: Language) {
+//
+//            }
+//
+//            override fun onFinished() {
+//                // Show the sticky notification
+//                if (isNotificationEnabled)
+//                    StickyNotification.showNotification(this@FirstOpenActivity)
+//
+//                // Retrieve the action passed from the notification
+//                val action = intent.getStringExtra("action")
+//
+//                // Now, launch HomeActivity with the action
+//                val homeIntent = Intent(this@FirstOpenActivity, HomeActivity::class.java).apply {
+//                    putExtra("action", action)  // Pass the action to HomeActivity
+//                }
+//                startActivity(homeIntent)
+//                finish() // Finish FirstOpenActivity to prevent users from coming back here
+//            }
+//        }
+//
+//
+//        val adsConfig = AperoFOAdsConfig.Builder()
+//            .setInterSplashHighId(BuildConfig.inter_spl_2)
+//            .setInterSplashId(BuildConfig.inter_spl_0)
+//            .setBannerSplashId(BuildConfig.banner_spl_0)
+//
+//            //For Welcome Screens
+//            .setNativeWelcomeHighId(BuildConfig.native_wel_2)
+//            .setNativeWelcomeId(BuildConfig.native_wel_0)
+//            .setNativeWelcomeDupHighId(BuildConfig.native_wel_w_2)
+//            .setNativeWelcomeDupMediumId(BuildConfig.native_wel_w_2_2)
+//            .setNativeWelcomeDupId(BuildConfig.native_wel_w_0)
+//
+//
+//            .setNativeLanguageHighId(BuildConfig.native_lang1_2)
+//            .setNativeLanguageId(BuildConfig.native_lang1_0)
+//            .setNativeLanguageDupHighId(BuildConfig.native_lang2_2)
+//            .setNativeLanguageDupMediumId(BuildConfig.native_lang2_2_2)
+//            .setNativeLanguageDupId(BuildConfig.native_lang2_0)
+//
+//            .setNativeOnboardFullscreenHighId(BuildConfig.native_onb1_f_2)
+//            .setNativeOnboardFullscreenId(BuildConfig.native_onb1_f_0)
+//            .setNativeOnboardFullscreen2HighId(BuildConfig.native_onb2_f_2)
+//            .setNativeOnboardFullscreen2MediumId(BuildConfig.native_onb2_f_2_2)
+//            .setNativeOnboardFullscreen2Id(BuildConfig.native_onb2_f_0)
+//            .setNativeOnboard1HighId(BuildConfig.native_onb1_2)
+//            .setNativeOnboard1Id(BuildConfig.native_onb1_0)
+//            .build()
+//
+//        val splashConfig = AperoSplashUiConfig.Builder()
+//            .setCustomSplashLayoutId(R.layout.activity_first_open)
+//            .setWaitForInitialization(true)
+//            .build()
+//
+//        val languageConfig = AperoLanguageUiConfig.Builder()
+//            .setLanguages(getLanguageList())
+//            .build()
+//
+//        val welcomeConfig = AperoWelcomeUiConfig.Builder()
+//            .setViewContentProvider { setUpWelcomeScreen() }
+//            .build()
+//
+//        // Config for onboard screen 1
+//        val onboard1Config =
+//            AperoOnboardPageConfig(layoutOnboardContentId = R.layout.fragment_wt_new_one)
+//        // Config for onboard screen 2
+//        val onboard2Config =
+//            AperoOnboardPageConfig(layoutOnboardContentId = R.layout.fragment_wt_new_two)
+//        // Config for onboard screen 3
+//        val onboard3Config =
+//            AperoOnboardPageConfig(layoutOnboardContentId = R.layout.fragment_wt_new_three)
+//
+//        // Combine config for onboard screens
+//        val onboardConfig =
+//            AperoOnboardUiConfig(pages = listOf(onboard1Config, onboard2Config, onboard3Config))
+//
+//
+//
+//
+//        val config = AperoFOConfig.Builder()
+//            .setCallback(callback)
+//            .setAdsConfig(adsConfig)
+//
+//            .setSplashUiConfig(splashConfig)
+//            .setLanguageUiConfig(languageConfig)
+//            .setWelcomeUiConfig(welcomeConfig)
+//            .setOnboardUiConfig(onboardConfig)
+//            .setCustomNativeOnboardLayoutId(R.layout.custom_native_ads_onboarding)
+//            .build()
+//
+//        AperoFO.startFlow(this, config)
+//
+//        GlobalScope.launch {
+//            withContext(Dispatchers.IO) {
+//                fetchAdIDS()
+//            }
+//        }
+//    }
+//
+//    private fun getSavedPermissionState(permissionKey: String): Boolean {
+//        val sharedPreferences = getSharedPreferences("AppPreferences", Context.MODE_PRIVATE)
+//        val state = sharedPreferences.getBoolean(permissionKey, false)
+//        Log.d("PermissionState", "Retrieved $permissionKey: $state")
+//        return state
+//    }
+//
+//    private fun getLanguageList(): List<Language> {
+//        val supportedLanguages = listOf(
+//            Language.Arabic, Language.German, Language.English,
+//            Language.Spanish, Language.French, Language.Hindi,
+//            Language.Japanese, Language.Korean, Language.Portuguese
+//        )
+//
+//        val deviceLanguageCode = Locale.getDefault().language
+//
+//        val isDeviceLanguageSupported = supportedLanguages.any { it.code == deviceLanguageCode }
+//        return if (isDeviceLanguageSupported) {
+//            listOf(supportedLanguages.first { it.code == deviceLanguageCode }) +
+//                    supportedLanguages.filter { it.code != deviceLanguageCode }
+//        } else {
+//            listOf(Language.English) + supportedLanguages.filter { it != Language.English }
+//        }
+//    }
 
-            override fun onLanguageConfirm(language: Language) {
-
-            }
-
-            override fun onFinished() {
-                // Show the sticky notification
-                if (isNotificationEnabled)
-                    StickyNotification.showNotification(this@FirstOpenActivity)
-
-                // Retrieve the action passed from the notification
-                val action = intent.getStringExtra("action")
-
-                // Now, launch HomeActivity with the action
-                val homeIntent = Intent(this@FirstOpenActivity, HomeActivity::class.java).apply {
-                    putExtra("action", action)  // Pass the action to HomeActivity
-                }
-                startActivity(homeIntent)
-                finish() // Finish FirstOpenActivity to prevent users from coming back here
-            }
-        }
-
-
-        val adsConfig = AperoFOAdsConfig.Builder()
-            .setInterSplashHighId(BuildConfig.inter_spl_2)
-            .setInterSplashId(BuildConfig.inter_spl_0)
-            .setBannerSplashId(BuildConfig.banner_spl_0)
-
-            //For Welcome Screens
-            .setNativeWelcomeHighId(BuildConfig.native_wel_2)
-            .setNativeWelcomeId(BuildConfig.native_wel_0)
-            .setNativeWelcomeDupHighId(BuildConfig.native_wel_w_2)
-            .setNativeWelcomeDupMediumId(BuildConfig.native_wel_w_2_2)
-            .setNativeWelcomeDupId(BuildConfig.native_wel_w_0)
-
-
-            .setNativeLanguageHighId(BuildConfig.native_lang1_2)
-            .setNativeLanguageId(BuildConfig.native_lang1_0)
-            .setNativeLanguageDupHighId(BuildConfig.native_lang2_2)
-            .setNativeLanguageDupMediumId(BuildConfig.native_lang2_2_2)
-            .setNativeLanguageDupId(BuildConfig.native_lang2_0)
-
-            .setNativeOnboardFullscreenHighId(BuildConfig.native_onb1_f_2)
-            .setNativeOnboardFullscreenId(BuildConfig.native_onb1_f_0)
-            .setNativeOnboardFullscreen2HighId(BuildConfig.native_onb2_f_2)
-            .setNativeOnboardFullscreen2MediumId(BuildConfig.native_onb2_f_2_2)
-            .setNativeOnboardFullscreen2Id(BuildConfig.native_onb2_f_0)
-            .setNativeOnboard1HighId(BuildConfig.native_onb1_2)
-            .setNativeOnboard1Id(BuildConfig.native_onb1_0)
-            .build()
-
-        val splashConfig = AperoSplashUiConfig.Builder()
-            .setCustomSplashLayoutId(R.layout.activity_first_open)
-            .setWaitForInitialization(true)
-            .build()
-
-        val languageConfig = AperoLanguageUiConfig.Builder()
-            .setLanguages(getLanguageList())
-            .build()
-
-        val welcomeConfig = AperoWelcomeUiConfig.Builder()
-            .setViewContentProvider { setUpWelcomeScreen() }
-            .build()
-
-        // Config for onboard screen 1
-        val onboard1Config =
-            AperoOnboardPageConfig(layoutOnboardContentId = R.layout.fragment_wt_new_one)
-        // Config for onboard screen 2
-        val onboard2Config =
-            AperoOnboardPageConfig(layoutOnboardContentId = R.layout.fragment_wt_new_two)
-        // Config for onboard screen 3
-        val onboard3Config =
-            AperoOnboardPageConfig(layoutOnboardContentId = R.layout.fragment_wt_new_three)
-
-        // Combine config for onboard screens
-        val onboardConfig =
-            AperoOnboardUiConfig(pages = listOf(onboard1Config, onboard2Config, onboard3Config))
-
-
-
-
-        val config = AperoFOConfig.Builder()
-            .setCallback(callback)
-            .setAdsConfig(adsConfig)
-
-            .setSplashUiConfig(splashConfig)
-            .setLanguageUiConfig(languageConfig)
-            .setWelcomeUiConfig(welcomeConfig)
-            .setOnboardUiConfig(onboardConfig)
-            .setCustomNativeOnboardLayoutId(R.layout.custom_native_ads_onboarding)
-            .build()
-
-        AperoFO.startFlow(this, config)
-
-        GlobalScope.launch {
-            withContext(Dispatchers.IO) {
-                fetchAdIDS()
-            }
-        }
-    }
-
-    private fun getSavedPermissionState(permissionKey: String): Boolean {
-        val sharedPreferences = getSharedPreferences("AppPreferences", Context.MODE_PRIVATE)
-        val state = sharedPreferences.getBoolean(permissionKey, false)
-        Log.d("PermissionState", "Retrieved $permissionKey: $state")
-        return state
-    }
-
-    private fun getLanguageList(): List<Language> {
-        val supportedLanguages = listOf(
-            Language.Arabic, Language.German, Language.English,
-            Language.Spanish, Language.French, Language.Hindi,
-            Language.Japanese, Language.Korean, Language.Portuguese
-        )
-
-        val deviceLanguageCode = Locale.getDefault().language
-
-        val isDeviceLanguageSupported = supportedLanguages.any { it.code == deviceLanguageCode }
-        return if (isDeviceLanguageSupported) {
-            listOf(supportedLanguages.first { it.code == deviceLanguageCode }) +
-                    supportedLanguages.filter { it.code != deviceLanguageCode }
-        } else {
-            listOf(Language.English) + supportedLanguages.filter { it != Language.English }
-        }
-    }
-
-    private fun fetchAdIDS() {
-        if (NetworkCheck.isNetworkAvailable(this@FirstOpenActivity)) {
-            mFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance()
-            val configSettings =
-                FirebaseRemoteConfigSettings.Builder().setMinimumFetchIntervalInSeconds(0).build()
-            mFirebaseRemoteConfig!!.setConfigSettingsAsync(configSettings)
-            mFirebaseRemoteConfig!!.fetchAndActivate().addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    mFirebaseRemoteConfig!!.activate()
-                    saveAllValues()
-                    AperoFO.finishSplashInitialization()
-                } else {
-                    AperoFO.finishSplashInitialization()
-
-                }
-            }
-        } else {
-            AperoFO.finishSplashInitialization()
-        }
-    }
 
     private fun saveAllValues() {
 
@@ -437,7 +405,6 @@ class FirstOpenActivity : AppCompatActivity() {
         txtScanQRCode.setOnClickListener {
             isChecked = true
             progressAnim.visibility = View.GONE
-            AperoFO.showWelcomeDupScreen()
             CustomFirebaseEvents.logEvent(
                 context = this,
                 screenName = "",
@@ -455,7 +422,6 @@ class FirstOpenActivity : AppCompatActivity() {
         txtScanBarCode.setOnClickListener {
             isChecked = true
             progressAnim.visibility = View.GONE
-            AperoFO.showWelcomeDupScreen()
             CustomFirebaseEvents.logEvent(
                 context = this,
                 screenName = "",
@@ -473,7 +439,6 @@ class FirstOpenActivity : AppCompatActivity() {
         txtCreateQRCode.setOnClickListener {
             isChecked = true
             progressAnim.visibility = View.GONE
-            AperoFO.showWelcomeDupScreen()
             CustomFirebaseEvents.logEvent(
                 context = this,
                 screenName = "",
@@ -491,7 +456,6 @@ class FirstOpenActivity : AppCompatActivity() {
         txtCreateBarCode.setOnClickListener {
             isChecked = true
             progressAnim.visibility = View.GONE
-            AperoFO.showWelcomeDupScreen()
             CustomFirebaseEvents.logEvent(
                 context = this,
                 screenName = "",
@@ -510,7 +474,6 @@ class FirstOpenActivity : AppCompatActivity() {
         txtSearchImage.setOnClickListener {
             isChecked = true
             progressAnim.visibility = View.GONE
-            AperoFO.showWelcomeDupScreen()
             CustomFirebaseEvents.logEvent(
                 context = this,
                 screenName = "",
@@ -528,7 +491,7 @@ class FirstOpenActivity : AppCompatActivity() {
         txtCreatePDF.setOnClickListener {
             isChecked = true
             progressAnim.visibility = View.GONE
-            AperoFO.showWelcomeDupScreen()
+
             CustomFirebaseEvents.logEvent(
                 context = this,
                 screenName = "",
@@ -546,7 +509,7 @@ class FirstOpenActivity : AppCompatActivity() {
         txtTranslateImage.setOnClickListener {
             isChecked = true
             progressAnim.visibility = View.GONE
-            AperoFO.showWelcomeDupScreen()
+
             CustomFirebaseEvents.logEvent(
                 context = this,
                 screenName = "",
@@ -564,7 +527,7 @@ class FirstOpenActivity : AppCompatActivity() {
         txtSearchProduct.setOnClickListener {
             isChecked = true
             progressAnim.visibility = View.GONE
-            AperoFO.showWelcomeDupScreen()
+
             CustomFirebaseEvents.logEvent(
                 context = this,
                 screenName = "",
@@ -592,9 +555,8 @@ class FirstOpenActivity : AppCompatActivity() {
                     trigger = "",
                     eventName = "welcome2_scr_tap_continue"
                 )
-                AperoFO.completeWelcomeScreen()
             } else {
-                AperoFO.showWelcomeDupScreen()
+
                 CustomFirebaseEvents.logEvent(
                     context = this,
                     screenName = "",

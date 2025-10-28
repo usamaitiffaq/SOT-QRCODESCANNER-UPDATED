@@ -4,7 +4,9 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
+import android.app.Dialog
 import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -16,6 +18,7 @@ import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
@@ -23,10 +26,12 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
@@ -35,6 +40,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatButton
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.createBitmap
@@ -48,7 +54,12 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import apero.aperosg.monetization.util.showNativeAd
+import com.google.ads.mediation.admob.AdMobAdapter
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.LoadAdError
 import com.google.android.material.tabs.TabLayout
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
@@ -57,7 +68,9 @@ import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.google.zxing.qrcode.encoder.ByteMatrix
 import com.google.zxing.qrcode.encoder.Encoder
+import com.qrcodescanner.barcodereader.qrgenerator.BuildConfig
 import com.qrcodescanner.barcodereader.qrgenerator.R
+import com.qrcodescanner.barcodereader.qrgenerator.activities.HomeActivity
 import com.qrcodescanner.barcodereader.qrgenerator.adapters.BackgroundGradientAdapter
 import com.qrcodescanner.barcodereader.qrgenerator.adapters.BackgroundImagesAdapter
 import com.qrcodescanner.barcodereader.qrgenerator.adapters.ColorRecyclerAdapter
@@ -75,6 +88,7 @@ import com.qrcodescanner.barcodereader.qrgenerator.adapters.TabColorAdapter
 import com.qrcodescanner.barcodereader.qrgenerator.adapters.TabLogoAdapter
 import com.qrcodescanner.barcodereader.qrgenerator.adapters.TemplateAdapter
 import com.qrcodescanner.barcodereader.qrgenerator.ads.CustomFirebaseEvents
+import com.qrcodescanner.barcodereader.qrgenerator.ads.NativeMaster
 import com.qrcodescanner.barcodereader.qrgenerator.ads.NetworkCheck
 
 import com.qrcodescanner.barcodereader.qrgenerator.database.QRCodeDatabaseHelper
@@ -83,11 +97,13 @@ import com.qrcodescanner.barcodereader.qrgenerator.fragments.QrCustmizationUrlFr
 import com.qrcodescanner.barcodereader.qrgenerator.models.DotShape
 import com.qrcodescanner.barcodereader.qrgenerator.models.TabItem
 import com.qrcodescanner.barcodereader.qrgenerator.myapplication.MyApplication
-import com.qrcodescanner.barcodereader.qrgenerator.utils.AdsProvider
+
 import com.qrcodescanner.barcodereader.qrgenerator.utils.ColorGradientUtils
 import com.qrcodescanner.barcodereader.qrgenerator.utils.DotsUtils
 import com.qrcodescanner.barcodereader.qrgenerator.utils.EyesUtils
 import com.qrcodescanner.barcodereader.qrgenerator.utils.LogoUtils
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_BANNER_CUSTOMIZATION
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.BANNER_CUSTOMIZATION
 import com.qrcodescanner.barcodereader.qrgenerator.utils.TemplateUtils
 import com.qrcodescanner.barcodereader.qrgenerator.utils.native_result
 import com.skydoves.colorpickerview.ColorPickerView
@@ -115,7 +131,7 @@ class QrCustmizationCalanadarFragment : Fragment(), ColorRecyclerAdapter.OnItemC
 
     private var currentColor: Int = Color.BLACK
     private lateinit var tabLayout: TabLayout
-    private lateinit var layoutAdNative: FrameLayout
+    
     private lateinit var backgroundLayout: ConstraintLayout
     private lateinit var forgoundLayout: ConstraintLayout
     private lateinit var clTablayout: ConstraintLayout
@@ -168,9 +184,7 @@ class QrCustmizationCalanadarFragment : Fragment(), ColorRecyclerAdapter.OnItemC
         _binding = FragmentQrCustumizationUrlBinding.inflate(inflater, container, false)
         Log.d("QrCustomization", "Root view: ${_binding!!.root}")
 
-
-        imagePickerLauncher =
-            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        imagePickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == Activity.RESULT_OK && result.data != null) {
                     val imageUri: Uri? = result.data?.data
                     imageUri?.let {
@@ -254,7 +268,102 @@ class QrCustmizationCalanadarFragment : Fragment(), ColorRecyclerAdapter.OnItemC
         initEyes()
         initLogos()
         initText()
+
+        if (NetworkCheck.isNetworkAvailable(requireContext()) && requireContext().getSharedPreferences("RemoteConfig", MODE_PRIVATE).getString(
+                BANNER_CUSTOMIZATION,"ON").equals("ON",true)) {
+            if (NativeMaster.collapsibleBannerAdMobHashMap!!.containsKey("Add Remote")) {
+                val collapsibleAdView: AdView? = NativeMaster.collapsibleBannerAdMobHashMap!!["HomeFragment"]
+                binding.shimmerLayoutBanner.stopShimmer()
+                binding.shimmerLayoutBanner.visibility = View.GONE
+                binding.adViewContainer.removeView(binding.shimmerLayoutBanner)
+                binding.separator.visibility= View.VISIBLE
+
+                val parent = collapsibleAdView?.parent as? ViewGroup
+                parent?.removeView(collapsibleAdView)
+
+                binding.adViewContainer.addView(collapsibleAdView)
+            } else {
+                loadBanner()
+            }
+        } else {
+            binding.adViewContainer.visibility = View.GONE
+            binding.shimmerLayoutBanner.stopShimmer()
+            binding.shimmerLayoutBanner.visibility = View.GONE
+        }
+
     }
+
+    private fun loadBanner() {
+        val adView = AdView(requireContext())
+        adView.setAdSize(adSize)
+        val pref =requireContext().getSharedPreferences("RemoteConfig", MODE_PRIVATE)
+        val adId  =if (!BuildConfig.DEBUG){
+            pref.getString(AD_ID_BANNER_CUSTOMIZATION,"ca-app-pub-3747520410546258/1411990914")
+        }
+        else{
+            resources.getString(R.string.ADMOB_BANNER_SPLASH)
+        }
+        if (adId != null) {
+            adView.adUnitId = adId
+        }
+        val extras = Bundle()
+        extras.putString("collapsible", "bottom")
+
+        val adRequest = AdRequest.Builder()
+            .addNetworkExtrasBundle(AdMobAdapter::class.java, extras)
+            .build()
+
+        adView.loadAd(adRequest)
+        adView.adListener = object : AdListener() {
+            override fun onAdLoaded() {
+                binding.adViewContainer.removeAllViews()
+                binding.adViewContainer.addView(adView)
+                if (requireContext().getSharedPreferences("RemoteConfig", MODE_PRIVATE).getString(BANNER_CUSTOMIZATION, "SAVE").equals("SAVE")) {
+                    NativeMaster.collapsibleBannerAdMobHashMap!!["HomeFragment"] = adView
+                }
+
+                binding.shimmerLayoutBanner.stopShimmer()
+                binding.shimmerLayoutBanner.visibility = View.GONE
+                binding.separator.visibility= View.VISIBLE
+            }
+
+            override fun onAdFailedToLoad(error: LoadAdError) {
+                binding.shimmerLayoutBanner.stopShimmer()
+                binding.shimmerLayoutBanner.visibility = View.GONE
+                binding.separator.visibility= View.GONE
+            }
+
+            override fun onAdOpened() {
+
+            }
+
+            override fun onAdClicked() {
+
+            }
+
+            override fun onAdClosed() {
+
+            }
+        }
+    }
+
+    private val adSize: AdSize
+        get() {
+            val display = requireActivity().windowManager.defaultDisplay
+            val outMetrics = DisplayMetrics()
+            display.getMetrics(outMetrics)
+
+            val density = outMetrics.density
+
+            var adWidthPixels = binding.adViewContainer.width.toFloat() ?: 0f
+            if (adWidthPixels == 0f) {
+                adWidthPixels = outMetrics.widthPixels.toFloat()
+            }
+
+            val adWidth = (adWidthPixels / density).toInt()
+            return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(requireContext(), adWidth)
+        }
+
 
     private fun initViews() {
         CustomFirebaseEvents.logEvent(
@@ -270,8 +379,8 @@ class QrCustmizationCalanadarFragment : Fragment(), ColorRecyclerAdapter.OnItemC
         tabLayout.selectTab(tabLayout.getTabAt(0))
         qrCodeImageView = requireView().findViewById(R.id.qrCodeImageView)
         dbHelper = QRCodeDatabaseHelper(requireContext())
-        layoutAdNative = requireActivity().findViewById(R.id.layoutAdNative)
-        layoutAdNative.visibility = View.GONE
+     
+        
 
         val args = QrCustmizationCalanadarFragmentArgs.fromBundle(requireArguments())
         val eventTitle = args.eventTitle
@@ -335,14 +444,15 @@ class QrCustmizationCalanadarFragment : Fragment(), ColorRecyclerAdapter.OnItemC
     private fun clickEvents() {
         startviewsConfirms()
         _binding!!.clTemplates.setOnClickListener {
+            initListTemplates()
             _binding!!.clCustomizationOp1.visibility = View.GONE
             _binding!!.layoutTemplate.root.visibility = View.VISIBLE
+            _binding!!.tabRecyclerView.visibility = View.VISIBLE
             _binding!!.layoutColor.root.visibility = View.GONE
             _binding!!.layoutDots.root.visibility = View.GONE
             _binding!!.eyesLayout.root.visibility = View.GONE
             _binding!!.logoLayout.root.visibility = View.GONE
             _binding!!.textLayout.root.visibility = View.GONE
-
             templateConfirms()
             binding.svLayouts.requestLayout()
             _binding!!.svLayouts.post {
@@ -350,10 +460,12 @@ class QrCustmizationCalanadarFragment : Fragment(), ColorRecyclerAdapter.OnItemC
             }
 
         }
+
         _binding!!.clColor.setOnClickListener {
             _binding!!.clCustomizationOp1.visibility = View.GONE
             _binding!!.layoutTemplate.root.visibility = View.GONE
             _binding!!.layoutDots.root.visibility = View.INVISIBLE
+            _binding!!.tabRecyclerView.visibility = View.GONE
             _binding!!.layoutColor.root.visibility = View.VISIBLE
             _binding!!.eyesLayout.root.visibility = View.GONE
             _binding!!.logoLayout.root.visibility = View.GONE
@@ -369,11 +481,11 @@ class QrCustmizationCalanadarFragment : Fragment(), ColorRecyclerAdapter.OnItemC
             _binding!!.clCustomizationOp1.visibility = View.GONE
             _binding!!.layoutTemplate.root.visibility = View.GONE
             _binding!!.layoutDots.root.visibility = View.VISIBLE
+            _binding!!.tabRecyclerView.visibility = View.GONE
             _binding!!.layoutColor.root.visibility = View.GONE
             _binding!!.eyesLayout.root.visibility = View.GONE
             _binding!!.logoLayout.root.visibility = View.GONE
             _binding!!.textLayout.root.visibility = View.GONE
-
             dotsConfirms()
             binding.svLayouts.requestLayout()
             _binding!!.svLayouts.post {
@@ -383,6 +495,7 @@ class QrCustmizationCalanadarFragment : Fragment(), ColorRecyclerAdapter.OnItemC
         _binding!!.cleyes.setOnClickListener {
             _binding!!.clCustomizationOp1.visibility = View.GONE
             _binding!!.layoutTemplate.root.visibility = View.GONE
+            _binding!!.tabRecyclerView.visibility = View.GONE
             _binding!!.layoutDots.root.visibility = View.GONE
             _binding!!.layoutColor.root.visibility = View.GONE
             _binding!!.eyesLayout.root.visibility = View.VISIBLE
@@ -399,6 +512,7 @@ class QrCustmizationCalanadarFragment : Fragment(), ColorRecyclerAdapter.OnItemC
             _binding!!.clCustomizationOp1.visibility = View.GONE
             _binding!!.layoutTemplate.root.visibility = View.GONE
             _binding!!.layoutDots.root.visibility = View.GONE
+            _binding!!.tabRecyclerView.visibility = View.GONE
             _binding!!.layoutColor.root.visibility = View.GONE
             _binding!!.eyesLayout.root.visibility = View.GONE
             _binding!!.logoLayout.root.visibility = View.VISIBLE
@@ -414,6 +528,7 @@ class QrCustmizationCalanadarFragment : Fragment(), ColorRecyclerAdapter.OnItemC
             _binding!!.clCustomizationOp1.visibility = View.GONE
             _binding!!.layoutTemplate.root.visibility = View.GONE
             _binding!!.layoutDots.root.visibility = View.GONE
+            _binding!!.tabRecyclerView.visibility = View.GONE
             _binding!!.layoutColor.root.visibility = View.GONE
             _binding!!.eyesLayout.root.visibility = View.GONE
             _binding!!.logoLayout.root.visibility = View.GONE
@@ -427,20 +542,25 @@ class QrCustmizationCalanadarFragment : Fragment(), ColorRecyclerAdapter.OnItemC
         }
         _binding!!.ivOk.setOnClickListener {
             startviewsConfirms()
+            binding.layoutTemplate.templateRecyclerView.visibility = View.GONE
+            binding.tabRecyclerView.visibility = View.GONE
         }
+
         _binding!!.ivClose.setOnClickListener {
-            initViews()
-            clickEvents()
-            initListTemplates()
-            initListColors()
-            initDots()
-            initEyes()
-            initLogos()
-            initText()
-            startviewsConfirmsB()
-
-
+            showDiscardChangesDialog {
+                initViews()
+                clickEvents()
+                initListTemplates()
+                initListColors()
+                initDots()
+                initEyes()
+                initLogos()
+                initText()
+                startviewsConfirmsB()
+                binding.tabRecyclerView.visibility = View.GONE
+            }
         }
+
         _binding!!.ivBack.setOnClickListener {
             navController.navigate(R.id.action_showQRForAppFragment_to_navAppFragment)
         }
@@ -724,7 +844,8 @@ class QrCustmizationCalanadarFragment : Fragment(), ColorRecyclerAdapter.OnItemC
     private fun initListTemplates() {
         tabList[0].isSelected = true
         tabAdapter = TabAdapter(tabList) { position -> updateContent(position) }
-        binding.layoutTemplate.tabRecyclerView.adapter = tabAdapter
+        binding.tabRecyclerView.adapter = tabAdapter
+        binding.tabRecyclerView.isNestedScrollingEnabled = false
         binding.layoutTemplate.templateRecyclerView.visibility = View.VISIBLE
         templateAdapter = TemplateAdapter(emptyList()) { selectedTemplate ->
             TemplateUtils.setTemplateBackground(
@@ -2534,25 +2655,31 @@ class QrCustmizationCalanadarFragment : Fragment(), ColorRecyclerAdapter.OnItemC
     }
 
     private fun showDiscardChangesDialog(onConfirm: () -> Unit) {
-        val builder = AlertDialog.Builder(requireContext())
-        builder.setTitle(getString(R.string.dialog_title_discard_changes))
-        builder.setMessage(getString(R.string.dialog_message_discard_changes))
-        builder.setPositiveButton(R.string.dialog_positive_button) { dialog, _ ->
+        val dialog = Dialog(requireContext())
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(R.layout.custom_discard_dialog)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.setCancelable(true)
+
+        val btnDiscard = dialog.findViewById<ConstraintLayout>(R.id.btnDiscard)
+        val btnKeep = dialog.findViewById<AppCompatButton>(R.id.btnKeep)
+
+        btnDiscard.setOnClickListener {
             dialog.dismiss()
             onConfirm()
         }
-        builder.setNegativeButton(R.string.dialog_negative_button) { dialog, _ ->
-            dialog.dismiss() // Stay on the screen
+
+        btnKeep.setOnClickListener {
+            dialog.dismiss()
         }
-        val dialog = builder.create()
+
         dialog.show()
     }
 
     override fun onItemClick(color: Int) {
         currentColor = color
         // val appLink = QrCustmizationUrlFragmentArgs.fromBundle(requireArguments()).createdUrl
-        qrCodeBitmap =
-            generateQRCode(appLink, qrCodeImageView, currentColor, background, eyeShapeType)
+        qrCodeBitmap = generateQRCode(appLink, qrCodeImageView, currentColor, background, eyeShapeType)
         qrCodeBitmap = createBitmapFromView(
             requireContext(),
             requireActivity().findViewById<ConstraintLayout>(R.id.clTemplates)
@@ -2582,10 +2709,10 @@ class QrCustmizationCalanadarFragment : Fragment(), ColorRecyclerAdapter.OnItemC
             withContext(Dispatchers.Main) {
                 if (filePath.isNotEmpty()) {
                     Toast.makeText(context, "QR saved successfully!", Toast.LENGTH_SHORT).show()
-                    //val action =
-                    //   QrCustmizationUrlFragmentDirections.actionUrlcreationToFinalImagesUrl(filePath, appLink)
-                    //  findNavController().navigate(action)
-                } else {
+                    val action = QrCustmizationUrlFragmentDirections.actionShowappToFinalImage(filePath, appLink)
+                      findNavController().navigate(action)
+                }
+                else {
                     Toast.makeText(context, "Failed to save image", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -2672,31 +2799,7 @@ class QrCustmizationCalanadarFragment : Fragment(), ColorRecyclerAdapter.OnItemC
         }
     }
 
-    //    private suspend fun insertImagePathToDatabase(imagePath: String, qrCodeText: String) {
-//        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-//        val currentTime = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
-//        val drawableRes = R.drawable.ic_copy
-//
-//        // Use dbHelper's insertQRCode method, which updates if the QR code exists
-//        dbHelper.insertQRCode(
-//            qrCodeText,
-//            currentDate,
-//            currentTime,
-//            drawableRes,
-//            imagePath,
-//            "created"
-//        )
-//        withContext(Dispatchers.Main) {
-////            val message = if (success) {
-////                "Data inserted/updated successfully"
-////            } else {
-////                "Failed to insert/update data"
-////            }
-////            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-//        }
-//        // Show a message indicating the result
-//
-//    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -2705,6 +2808,8 @@ class QrCustmizationCalanadarFragment : Fragment(), ColorRecyclerAdapter.OnItemC
     override fun onResume() {
         super.onResume()
         onResumeEvents()
+        (activity as? HomeActivity)?.hideBannerAd()
+
     }
 
     private fun onResumeEvents() {
@@ -2734,7 +2839,7 @@ class QrCustmizationCalanadarFragment : Fragment(), ColorRecyclerAdapter.OnItemC
 //                R.layout.layout_home_native_ad
 //            )
 //        } else {
-//            layoutAdNative.visibility = View.GONE
+//            
 //        }
 
         val topText: TextView = requireActivity().findViewById(R.id.mainText)
@@ -2752,7 +2857,7 @@ class QrCustmizationCalanadarFragment : Fragment(), ColorRecyclerAdapter.OnItemC
         }
 
 
-        val download = requireActivity().findViewById<ImageView>(R.id.ivDownload)
+        val download = requireActivity().findViewById<TextView>(R.id.ivDownload)
         if (download != null) {
             download.visibility = View.GONE
         }

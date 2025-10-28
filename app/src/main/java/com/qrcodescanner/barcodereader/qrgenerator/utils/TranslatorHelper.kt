@@ -25,22 +25,16 @@ class TranslatorHelper(private val context: Context) {
     private var sourceOptions: TranslatorOptions
     private var sourceTranslator: Translator
     private val remoteModelManager = RemoteModelManager.getInstance()
-
-    // AlertDialog for download progress
     private var progressDialog: AlertDialog? = null
 
     init {
-        // Initialize the source (default source language)
         sourceOptions = TranslatorOptions.Builder()
-            .setSourceLanguage(
-                TranslateLanguage.fromLanguageTag("es").toString()
-            ) // Default source language
+            .setSourceLanguage(TranslateLanguage.fromLanguageTag("es").toString())
             .setTargetLanguage(TranslateLanguage.ENGLISH) // Default target language
             .build()
 
         sourceTranslator = Translation.getClient(sourceOptions)
     }
-
 
     private fun translateText(
         text: String,
@@ -51,7 +45,6 @@ class TranslatorHelper(private val context: Context) {
             return text
         }
 
-        // Ensure the source and target language models are downloaded
         downloadModelIfNeeded(sourceLanguageCode)
         downloadModelIfNeeded(targetLanguageCode)
 
@@ -61,7 +54,6 @@ class TranslatorHelper(private val context: Context) {
             .setTargetLanguage(TranslateLanguage.fromLanguageTag(targetLanguageCode).toString())
             .build()
 
-        // Initialize the translator with the updated options
         sourceTranslator = Translation.getClient(sourceOptions)
 
         // Translate text
@@ -70,31 +62,35 @@ class TranslatorHelper(private val context: Context) {
     }
 
     private fun downloadModelIfNeeded(languageCode: String) {
-        // Validate and convert the language code
-        val validLanguageCode = TranslateLanguage.fromLanguageTag(languageCode)
+        val validLanguageCode = normalizeLanguageCode(languageCode)
             ?: throw IllegalArgumentException("Invalid or unsupported language code: $languageCode")
 
-        // Build the remote model
+        // Rest of your method remains the same...
         val model = TranslateRemoteModel.Builder(validLanguageCode).build()
         val conditions = DownloadConditions.Builder()
             .requireWifi()
             .build()
 
-        // Check if the model is already downloaded
         if (!isModelDownloaded(validLanguageCode)) {
-            // Download the model
             val downloadTask = remoteModelManager.download(model, conditions)
             try {
                 Tasks.await(downloadTask)
                 Log.d("TranslatorHelper", "Model for $validLanguageCode downloaded successfully.")
             } catch (e: Exception) {
-                // Handle download failure
                 Log.e("TranslatorHelper", "Failed to download model for $validLanguageCode: ${e.message}")
                 throw RuntimeException("Failed to download translation model for $validLanguageCode: ${e.message}")
             }
         } else {
             Log.d("TranslatorHelper", "Model for $validLanguageCode already downloaded.")
         }
+    }
+
+    private fun normalizeLanguageCode(languageCode: String): String? {
+        // Remove script variants and country codes, keep only base language
+        val baseCode = languageCode.substringBefore("-").substringBefore("_")
+
+        // Validate if ML Kit supports this language
+        return TranslateLanguage.fromLanguageTag(baseCode)
     }
 
 

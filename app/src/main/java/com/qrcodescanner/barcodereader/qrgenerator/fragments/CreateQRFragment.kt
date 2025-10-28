@@ -2,6 +2,7 @@ package com.qrcodescanner.barcodereader.qrgenerator.fragments
 
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -13,10 +14,11 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
-import apero.aperosg.monetization.util.showNativeAd
+import com.qrcodescanner.barcodereader.qrgenerator.BuildConfig
 import com.qrcodescanner.barcodereader.qrgenerator.myapplication.MyApplication
 import com.qrcodescanner.barcodereader.qrgenerator.R
 import com.qrcodescanner.barcodereader.qrgenerator.activities.HomeActivity
@@ -24,8 +26,11 @@ import com.qrcodescanner.barcodereader.qrgenerator.databinding.FragmentCreateQRB
 import com.qrcodescanner.barcodereader.qrgenerator.adapters.SocialAdapter
 import com.qrcodescanner.barcodereader.qrgenerator.ads.CustomFirebaseEvents
 import com.qrcodescanner.barcodereader.qrgenerator.ads.NetworkCheck
+import com.qrcodescanner.barcodereader.qrgenerator.ads.NewNativeAdClass
 import com.qrcodescanner.barcodereader.qrgenerator.models.SocialItem
-import com.qrcodescanner.barcodereader.qrgenerator.utils.AdsProvider
+
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_NATIVE_INSIDE
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.NATIVE_CREATE_QR
 
 class CreateQRFragment : Fragment() {
     private lateinit var socialAdapter: SocialAdapter
@@ -43,17 +48,27 @@ class CreateQRFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        (requireActivity() as HomeActivity).reloadAds()
         CustomFirebaseEvents.logEvent(
             context = requireActivity(),
             screenName = "App display Create QR code screen",
             trigger = "App display tab Create",
             eventName = "createqr_scr"
         )
+
+//        if (NetworkCheck.isNetworkAvailable(context) &&
+//            context?.getSharedPreferences("RemoteConfig", Context.MODE_PRIVATE)?.getString(
+//                NATIVE_CREATE_QR, "ON").equals("ON", true)
+//        ) {
+//            binding.nativeAdContainerAd.visibility = View.VISIBLE
+//            loadAdmobNativeAd()
+//        } else {
+//            binding.nativeAdContainerAd.visibility = View.GONE
+//            binding.shimmerLayout.stopShimmer()
+//        }
+
         navController = findNavController()
         binding.recyclerviewItems.layoutManager = GridLayoutManager(requireContext(), 3)
-
-
+        requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.appBlue)
 
         val socialItems = listOf(
             SocialItem(R.drawable.ic_facebook, getString(R.string.facebook)),
@@ -65,14 +80,11 @@ class CreateQRFragment : Fragment() {
             SocialItem(R.drawable.ic_email, getString(R.string.email)),
             SocialItem(R.drawable.ic_apps, getString(R.string.apps)),
             SocialItem(R.drawable.ic_copy__2_, getString(R.string.clipboard)),
-            SocialItem(R.drawable.ic_website, getString(R.string.website)),
+            SocialItem(R.drawable.ic_website_qr, getString(R.string.website)),
             SocialItem(R.drawable.ic_contacts, getString(R.string.contact)),
             SocialItem(R.drawable.ic_wifi, getString(R.string.wifi)),
             SocialItem(R.drawable.ic_location, getString(R.string.location)),
-            SocialItem(R.drawable.ic_calender, getString(R.string.calender)),
-//            SocialItem(R.drawable.ic_aztech, getString(R.string.pdf417)),
-//            SocialItem(R.drawable.ic_aztech, getString(R.string.aztech)),
-//            SocialItem(R.drawable.ic_myqr, getString(R.string.my_qr))
+            SocialItem(R.drawable.ic_calender, getString(R.string.calender))
             )
 
         socialAdapter = SocialAdapter(socialItems) { item ->
@@ -107,6 +119,35 @@ class CreateQRFragment : Fragment() {
                 }
             })
     }
+
+//    private fun loadAdmobNativeAd() {
+//        val pref = requireContext().getSharedPreferences("RemoteConfig", MODE_PRIVATE)
+//        val adId  =if (!BuildConfig.DEBUG){
+//            pref.getString(AD_ID_NATIVE_INSIDE,"ca-app-pub-3747520410546258/1477166335")
+//        }
+//        else{
+//            resources.getString(R.string.ADMOB_NATIVE_LANGUAGE_1)
+//        }
+//
+//        NewNativeAdClass.checkAdRequestAdmob(
+//            mContext = requireActivity(),
+//            adId = adId!!,
+//            fragmentName = "HomeFragment",
+//            isMedia = true,
+//            isMediaOnLeft = true,
+//            adContainer = binding.nativeAdContainerAd,
+//            isMediumAd = true,
+//            onFailed = {
+//                binding.shimmerLayout.stopShimmer()
+//                binding.nativeAdContainerAd.visibility = View.GONE
+//
+//            },
+//            onAddLoaded = {
+//                binding.shimmerLayout.stopShimmer()
+//                binding.shimmerLayout.visibility = View.GONE
+//            }
+//        )
+//    }
 
 
     private fun navigateToViewQRCode(platform: String) {
@@ -250,26 +291,9 @@ class CreateQRFragment : Fragment() {
         super.onResume()
         isNavControllerAdded()
 
-
         val isAdEnabled = requireActivity().getSharedPreferences(
             "RemoteConfig", AppCompatActivity.MODE_PRIVATE
         ).getBoolean("native_create", true)
-
-// Configure and load the ad only if it's enabled and network is available
-        if (NetworkCheck.isNetworkAvailable(requireContext()) && isAdEnabled) {
-            AdsProvider.nativeCreate.config(isAdEnabled)
-            AdsProvider.nativeCreate.loadAds(MyApplication.getApplication())
-
-            binding.layoutAdNative.visibility = View.VISIBLE
-            showNativeAd(
-                AdsProvider.nativeCreate,
-                binding.layoutAdNative,
-                R.layout.layout_home_native_ad
-            )
-        } else {
-            binding.layoutAdNative.visibility = View.GONE
-        }
-
 
         val TopText: TextView = requireActivity().findViewById(R.id.mainText)
         TopText.visibility = View.VISIBLE
@@ -286,7 +310,7 @@ class CreateQRFragment : Fragment() {
         if (setting != null) {
             setting.visibility = View.INVISIBLE
         }
-        val download = requireActivity().findViewById<ImageView>(R.id.ivDownload)
+        val download = requireActivity().findViewById<TextView>(R.id.ivDownload)
         if (download != null) {
             download.visibility = View.GONE
         }

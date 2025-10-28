@@ -50,8 +50,7 @@
         android:id="@+id/constraintLayout7"
         android:layout_width="match_parent"
         android:layout_height="300dp"
-
-        app:layout_constraintBottom_toTopOf="@+id/clbanner"
+        app:layout_constraintBottom_toTopOf="@+id/nativeAdContainerAd"
         app:layout_constraintTop_toBottomOf="@id/saved_image"
         tools:layout_editor_absoluteX="0dp">
 
@@ -106,30 +105,26 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/clbanner"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/nativeAdContainerAd"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="@dimen/_2sdp"
-        android:paddingBottom="@dimen/_4sdp"
-        android:layout_marginTop="@dimen/_5sdp"
-        android:background="@drawable/border_background"
-        android:padding="2dp"
+        android:layout_marginHorizontal="@dimen/_3sdp"
+        app:cardBackgroundColor="@color/native_ad_background"
+        app:cardCornerRadius="@dimen/_5sdp"
+        app:cardElevation="0dp"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:layout_marginBottom="@dimen/_2sdp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <FrameLayout
-            android:id="@+id/bannerFr"
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/shimmerLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:visibility="gone"
-            android:background="@color/transparent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
-
-            <include layout="@layout/new_shimmer" />
-        </FrameLayout>
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            android:layout_height="wrap_content">
+            <include layout="@layout/admob_native_medium_shimmer" />
+        </com.facebook.shimmer.ShimmerFrameLayout>
+    </androidx.cardview.widget.CardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

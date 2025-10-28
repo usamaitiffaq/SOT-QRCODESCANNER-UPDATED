@@ -78,7 +78,7 @@ class CameraCaptureImageSearchFragment : Fragment() {
 
         val activity = requireActivity() as HomeActivity
         activity.updateAdLayoutVisibility(shouldShowAd = true)
-        activity.reloadAds()
+//        activity.reloadAds()
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 CustomFirebaseEvents.logEvent(context = requireActivity(), eventName = "cam_capture_scr_tap_back")

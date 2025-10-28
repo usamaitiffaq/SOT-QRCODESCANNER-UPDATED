@@ -1,6 +1,7 @@
 package com.qrcodescanner.barcodereader.qrgenerator.activities
 
 import android.Manifest
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
@@ -12,12 +13,14 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
@@ -30,17 +33,18 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.navigation.ui.NavigationUI
 import androidx.recyclerview.widget.LinearLayoutManager
-import apero.aperosg.monetization.util.showBannerAd
-import apero.aperosg.monetization.util.showNativeAd
+import com.google.ads.mediation.admob.AdMobAdapter
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -58,7 +62,10 @@ import com.qrcodescanner.barcodereader.qrgenerator.myapplication.MyApplication
 import com.qrcodescanner.barcodereader.qrgenerator.R
 import com.qrcodescanner.barcodereader.qrgenerator.adapters.PermissionAdapter
 import com.qrcodescanner.barcodereader.qrgenerator.ads.CustomFirebaseEvents
+import com.qrcodescanner.barcodereader.qrgenerator.ads.InterstitialClassAdMob
+import com.qrcodescanner.barcodereader.qrgenerator.ads.NativeMaster
 import com.qrcodescanner.barcodereader.qrgenerator.ads.NetworkCheck
+import com.qrcodescanner.barcodereader.qrgenerator.ads.NewNativeAdClass
 import com.qrcodescanner.barcodereader.qrgenerator.database.QRCodeDatabaseHelper
 import com.qrcodescanner.barcodereader.qrgenerator.databinding.ActivityHomeBinding
 import com.qrcodescanner.barcodereader.qrgenerator.databinding.LayoutPermissionsBottomSheetBinding
@@ -68,17 +75,20 @@ import com.qrcodescanner.barcodereader.qrgenerator.models.FullscreenDialogFragme
 import com.qrcodescanner.barcodereader.qrgenerator.models.Permission
 import com.qrcodescanner.barcodereader.qrgenerator.notification.AppNotificationManager
 import com.qrcodescanner.barcodereader.qrgenerator.stickynotification.StickyNotification
-import com.qrcodescanner.barcodereader.qrgenerator.utils.AdsProvider
 import com.qrcodescanner.barcodereader.qrgenerator.utils.BaseActivity
 import com.qrcodescanner.barcodereader.qrgenerator.utils.PermissionUtils
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_BANNER_HOME
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_NATIVE_NOFTI_DRAWER
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.BANNER_BOTTOM_HOME
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.BANNER_HOME
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.INTERSTITIAL_ENTER_CREATE_QR
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.INTERSTITIAL_ENTER_TRANSLATION
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.NATIVE_BOTTOM_SHEET
 import com.qrcodescanner.barcodereader.qrgenerator.utils.banner
-import com.qrcodescanner.barcodereader.qrgenerator.utils.hideSystemBars
 import com.qrcodescanner.barcodereader.qrgenerator.utils.inter_create
-import com.qrcodescanner.barcodereader.qrgenerator.utils.showSystemBars
 import java.io.File
 
 class HomeActivity : BaseActivity(), HistoryListener {
-
     companion object {
         private const val REQUEST_CAMERA_PERMISSION = 1001
         private const val REQUEST_NOTIFICATION_PERMISSION = 1002
@@ -86,7 +96,6 @@ class HomeActivity : BaseActivity(), HistoryListener {
         const val REQUEST_CODE_CREATE_DOCUMENT = 1001
         var isFullScreenDialogVisible = false
     }
-
     private var isBottomSheetVisible = false
     private lateinit var navController: NavController
     private lateinit var sharedPreferences: SharedPreferences
@@ -115,15 +124,16 @@ class HomeActivity : BaseActivity(), HistoryListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_home)
-
+       binding= ActivityHomeBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setStatusBarColor(this@HomeActivity,resources.getColor(R.color.statusBar))
+        this.hideSystemUIUpdated()
         clearTempFiles()
         AppNotificationManager.createNotificationChannels(this)
         isNotificationEnabled = getSavedPermissionState("notificationPermission")
         isDailyAwesomeEnabled = getSavedPermissionState("dailyAwesomePermission")
 
         if (BuildConfig.DEBUG) {
-            // This will trigger the Ad Inspector in debug mode
             MobileAds.openAdInspector(this@HomeActivity) { error ->
                 if (error != null) {
                     Log.e("AdInspector", "Error occurred: ${error.message}")
@@ -132,8 +142,6 @@ class HomeActivity : BaseActivity(), HistoryListener {
                 }
             }
         } else {
-            // Optionally, you can still trigger it in release if needed for testing
-            // Make sure this condition is satisfied
             MobileAds.openAdInspector(this@HomeActivity) { error ->
                 if (error != null) {
                     Log.e("AdInspector", "Error occurred in release mode: ${error.message}")
@@ -204,20 +212,18 @@ class HomeActivity : BaseActivity(), HistoryListener {
         toolbar = findViewById(R.id.inclToolBar)
         clBottomBar = findViewById(R.id.clBottomBar)
 
-        // Hide the action bar
-//        supportActionBar?.hide()
 
         Log.d("MyFragment", "onCreateView called")
 
-        hideSystemBars()
 
-        checkNetworkAndLoadAds()
+//        checkNetworkAndLoadAds() // Check network and load ads in onCreate
 
-        adReloadRunnable = Runnable {
-            Log.d("AdTimer", "10 seconds passed. Reloading ad...")
-            checkNetworkAndLoadAds()
-            startAdReloadTimer()
-        }
+        // Initialize the ad reload runnable
+//        adReloadRunnable = Runnable {
+//            Log.d("AdTimer", "10 seconds passed. Reloading ad...")
+//            checkNetworkAndLoadAds()
+//            startAdReloadTimer()  // Schedule the next reload
+//        }
 
         addFabBtn.setOnClickListener {
             CustomFirebaseEvents.logEvent(
@@ -267,10 +273,10 @@ class HomeActivity : BaseActivity(), HistoryListener {
             // Control toolbar visibility
             if (destination.id == R.id.nav_home || destination.id == R.id.nav_showcode ||
                 destination.id == R.id.nav_template || destination.id == R.id.nav_Qr_custumization_Fragment ||
-                destination.id == R.id.nav_Qr_Email_custumization_Fragment || destination.id == R.id.nav_Qr_url_custumization_Fragment ||
-                destination.id == R.id.nav_QR_CustimizationForAppFragment || destination.id == R.id.nav_ShowClipbaoardAppFragment ||
-                destination.id == R.id.nav_Qr_contact_custumization_Fragment || destination.id == R.id.nav_Qr_wifi_custumization_Fragment ||
-                destination.id == R.id.nav_Qr_location_custumization_Fragment || destination.id == R.id.nav_Qr_calandar_custumization_Fragment
+                destination.id == R.id.nav_Qr_Email_custumization_Fragment||destination.id==R.id.nav_Qr_url_custumization_Fragment||
+                destination.id==R.id.nav_QR_CustimizationForAppFragment||destination.id==R.id.nav_ShowClipbaoardAppFragment||
+                destination.id==R.id.nav_Qr_contact_custumization_Fragment||destination.id==R.id.nav_Qr_wifi_custumization_Fragment||
+                destination.id==R.id.nav_Qr_location_custumization_Fragment||destination.id==R.id.nav_Qr_calandar_custumization_Fragment
             ) {
                 toolbar.visibility = View.GONE
             } else {
@@ -279,10 +285,10 @@ class HomeActivity : BaseActivity(), HistoryListener {
             }
 
             // Hide the banner ad when WebViewFragment is shown
-            if (destination.id == R.id.nav_webfragment) {
-                // Hide the banner ad
-                findViewById<FrameLayout>(R.id.bannerFr).visibility = View.GONE
-            }
+//            if (destination.id == R.id.nav_webfragment) {
+//                // Hide the banner ad
+//                findViewById<FrameLayout>(R.id.bannerFr).visibility = View.GONE
+//            }
 
             // Control clBottomBar visibility
             when (destination.id) {
@@ -296,8 +302,8 @@ class HomeActivity : BaseActivity(), HistoryListener {
                             true
                         )
                     ) {
-                        findViewById<FrameLayout>(R.id.bannerFr).visibility = View.VISIBLE
-                        findViewById<ConstraintLayout>(R.id.clbanner).visibility = View.VISIBLE
+
+                        binding.adViewContainer.visibility= View.VISIBLE
                     }
                     clBottomBar.visibility = View.VISIBLE
                 }
@@ -307,43 +313,30 @@ class HomeActivity : BaseActivity(), HistoryListener {
                     clBottomBar.visibility = View.GONE
                 }
             }
-            when (destination.id) {
-                R.id.nav_webfragment/*,R.id.nav_history*/ -> {
-                    findViewById<FrameLayout>(R.id.bannerFr).visibility = View.GONE
-                }
-            }
+//            when (destination.id) {
+//                R.id.nav_webfragment/*,R.id.nav_history*/ -> {
+//                    findViewById<FrameLayout>(R.id.bannerFr).visibility = View.GONE
+//                }
+//            }
         }
-
-       barcontrol()
     }
 
-    private fun barcontrol() {
+    fun setStatusBarColor(activity: Activity, color: Int) {
+        val window = activity.window
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) { // Android 15+
+            window.decorView.setOnApplyWindowInsetsListener { view, insets ->
+                val statusBarInsets = insets.getInsets(WindowInsets.Type.statusBars())
+                view.setBackgroundColor(color)
 
-        this.hideSystemUIUpdated()
-        navController.addOnDestinationChangedListener { _, destination, _ ->
-            when (destination.id) {
-                R.id.nav_home ->
-                {
-                    hideSystemBars()
-                    window.statusBarColor = ContextCompat.getColor(this, R.color.black)
-                }
-
-                else -> {
-                    showSystemBars()
-                    window.statusBarColor = ContextCompat.getColor(this, R.color.newcolor)
-                }
-            }
-        }
-
-        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
-
-        if (Build.VERSION.SDK_INT >= 35) {
-            ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-                // Only apply top inset (status bar height) to the toolbar
-                v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0)
+                // Adjust padding to avoid overlap
+                view.setPadding(0, statusBarInsets.top, 0, 0)
                 insets
             }
+        } else {
+            // For Android 14 and below
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+            window.statusBarColor = color
         }
     }
 
@@ -354,7 +347,7 @@ class HomeActivity : BaseActivity(), HistoryListener {
 
     private fun showPermissionsDialogIfNeeded() {
         if (blockVisibilityFromOtherFragments) {
-            val sharedPreferences = getSharedPreferences("RemoteConfig", Context.MODE_PRIVATE)
+            val sharedPreferences = getSharedPreferences("AppPreferences", Context.MODE_PRIVATE)
             val isFirstTime = sharedPreferences.getBoolean("isFirstTime", true)
             val isCameraPermissionEnabled = getSavedPermissionState("cameraPermission")
             isNotificationEnabled = getSavedPermissionState("notificationPermission")
@@ -414,7 +407,6 @@ class HomeActivity : BaseActivity(), HistoryListener {
     }
 
     private fun showPermissionsDialog() {
-        // Prevent multiple dialogs from being shown
         if (isBottomSheetVisible) return
 
         // Check if any permission is not enabled
@@ -427,7 +419,6 @@ class HomeActivity : BaseActivity(), HistoryListener {
             "isCameraPermissionEnabled=$isCameraPermissionEnabled, isNotificationEnabled=$isNotificationEnabled, isDailyAwesomeEnabled=$isDailyAwesomeEnabled"
         )
 
-        // Show the dialog if any permission is not enabled
         isBottomSheetVisible = true
         val bottomSheetDialog = BottomSheetDialog(this, R.style.SheetDialog)
         val dialogBinding = LayoutPermissionsBottomSheetBinding.inflate(layoutInflater)
@@ -511,30 +502,55 @@ class HomeActivity : BaseActivity(), HistoryListener {
         homeActivity: HomeActivity,
         dialogBinding: LayoutPermissionsBottomSheetBinding
     ) {
-        Log.e("checkreload", "native ad is reload")
-        if (NetworkCheck.isNetworkAvailable(homeActivity) && isAdEnabled) {
-            AdsProvider.nativeBottomSheet.config(isAdEnabled)
-            AdsProvider.nativeBottomSheet.loadAds(MyApplication.getApplication())
+        val remoteConfig =getSharedPreferences("RemoteConfig", Context.MODE_PRIVATE)
+        val nativeSwitch = remoteConfig.getString(NATIVE_BOTTOM_SHEET, "ON")
+        if (com.manual.mediation.library.sotadlib.utils.NetworkCheck.isNetworkAvailable(this) && nativeSwitch.equals("ON", true)
+        ) {
 
-            dialogBinding.layoutAdNative.visibility = View.VISIBLE
-            showNativeAd(
-                AdsProvider.nativeBottomSheet,
-                dialogBinding.layoutAdNative,
-                R.layout.custom_native_ads_bottomsheet
+            val adId = if (!BuildConfig.DEBUG) {
+                remoteConfig.getString(AD_ID_NATIVE_NOFTI_DRAWER, "ca-app-pub-3747520410546258/4148382197")
+            } else {
+                getString(R.string.ADMOB_NATIVE_LANGUAGE_1)
+            }
+
+            dialogBinding.nativeAdContainerAd.visibility = View.VISIBLE
+            dialogBinding.shimmerLayout.visibility = View.VISIBLE
+            dialogBinding.shimmerLayout.startShimmer()
+
+            NewNativeAdClass.checkAdRequestAdmob(
+                mContext = this,
+                fragmentName = "RemoteFragment",
+                adId = adId!!,
+                isMedia = true,
+                isMediaOnLeft = true,
+                adContainer = dialogBinding.nativeAdContainerAd,
+                isMediumAd = true,
+                onFailed = {
+                    dialogBinding.shimmerLayout.stopShimmer()
+                    dialogBinding.shimmerLayout.visibility = View.GONE
+                    dialogBinding.nativeAdContainerAd.visibility = View.GONE
+                },
+                onAddLoaded = {
+                    dialogBinding.shimmerLayout.stopShimmer()
+                    dialogBinding.shimmerLayout.visibility = View.GONE
+                }
             )
         } else {
-            dialogBinding.layoutAdNative.visibility = View.GONE
+            // No internet or switch OFF
+            dialogBinding.nativeAdContainerAd.visibility = View.GONE
+            dialogBinding.shimmerLayout.stopShimmer()
+            dialogBinding.shimmerLayout.visibility = View.GONE
         }
     }
 
     fun savePermissionState(permissionKey: String, isChecked: Boolean) {
-        val sharedPreferences = getSharedPreferences("RemoteConfig", Context.MODE_PRIVATE)
+        val sharedPreferences = getSharedPreferences("AppPreferences", Context.MODE_PRIVATE)
         sharedPreferences.edit().putBoolean(permissionKey, isChecked).apply()
         Log.e("PermissionsCheck", "savePermissionState: $permissionKey - isChecked: $isChecked")
     }
 
     fun getSavedPermissionState(permissionKey: String): Boolean {
-        val sharedPreferences = getSharedPreferences("RemoteConfig", Context.MODE_PRIVATE)
+        val sharedPreferences = getSharedPreferences("AppPreferences", Context.MODE_PRIVATE)
         var savedState = sharedPreferences.getBoolean(permissionKey, false)
         when (permissionKey) {
             "cameraPermission" -> {
@@ -605,6 +621,7 @@ class HomeActivity : BaseActivity(), HistoryListener {
         bottomBar.visibility = View.VISIBLE
     }
 
+
     private fun requestCameraPermission() {
         ActivityCompat.requestPermissions(
             this,
@@ -643,43 +660,43 @@ class HomeActivity : BaseActivity(), HistoryListener {
         }
     }
 
-    private fun startAdReloadTimer() {
-        Log.d("AdTimer", "Starting or restarting ad reload timer for 10 seconds.")
-        adReloadHandler.postDelayed(adReloadRunnable, adReloadInterval)
-    }
+//    private fun startAdReloadTimer() {
+//        Log.d("AdTimer", "Starting or restarting ad reload timer for 10 seconds.")
+//        adReloadHandler.postDelayed(adReloadRunnable, adReloadInterval)
+//    }
 
-    private fun stopAdReloadTimer() {
-        Log.d("AdTimer", "Stopping ad reload timer.")
-        adReloadHandler.removeCallbacks(adReloadRunnable)
-    }
+//    private fun stopAdReloadTimer() {
+//        Log.d("AdTimer", "Stopping ad reload timer.")
+//        adReloadHandler.removeCallbacks(adReloadRunnable)
+//    }
 
     override fun onPause() {
         super.onPause()
         Log.d("ActivityState", "HomeActivity paused. Stopping ad reload timer.")
-        stopAdReloadTimer()  // Stop the timer when the activity goes into the background
+//        stopAdReloadTimer()  // Stop the timer when the activity goes into the background
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onResume() {
         super.onResume()
-        hideSystemBars()
+
         showPermissionsDialogIfNeeded()
         Log.d("ActivityState", "HomeActivity resumed. Starting ad reload timer.")
-        startAdReloadTimer()  // Start or resume the timer when activity is visible
-        navController.addOnDestinationChangedListener { _, destination, _ ->
-            when (destination.id) {
-                R.id.nav_webfragment -> {
-                    findViewById<ConstraintLayout>(R.id.clbanner).visibility = View.GONE
-                }
-
-                R.id.nav_settings -> {
-//                    loadShowBannerAd()
-                    findViewById<ConstraintLayout>(R.id.clbanner).visibility = View.VISIBLE
-                    findViewById<FrameLayout>(R.id.bannerFr).visibility = View.VISIBLE
-                }
-            }
-
-        }
+//        startAdReloadTimer()  // Start or resume the timer when activity is visible
+//        navController.addOnDestinationChangedListener { _, destination, _ ->
+//            when (destination.id) {
+////                R.id.nav_webfragment -> {
+////                    findViewById<ConstraintLayout>(R.id.clbanner).visibility = View.GONE
+////                }
+//
+////                R.id.nav_settings -> {
+////                    loadShowBannerAd()
+////                    findViewById<ConstraintLayout>(R.id.clbanner).visibility = View.VISIBLE
+////                    findViewById<FrameLayout>(R.id.bannerFr).visibility = View.VISIBLE
+////                }
+//            }
+//
+//        }
         navController.addOnDestinationChangedListener { _, destination, _ ->
             // Control toolbar visibility
             if (destination.id == R.id.nav_home) {
@@ -689,15 +706,6 @@ class HomeActivity : BaseActivity(), HistoryListener {
         }
 
         checkNetworkAndLoadAds()
-        AdsProvider.interCreate.config(
-            getSharedPreferences(
-                "RemoteConfig",
-                MODE_PRIVATE
-            ).getBoolean(inter_create, true)
-        )
-        if (NetworkCheck.isNetworkAvailable(this@HomeActivity)) {
-            AdsProvider.interCreate.loadAds(MyApplication.getApplication())
-        }
     }
 
     private val requestPermissionLauncher =
@@ -707,11 +715,13 @@ class HomeActivity : BaseActivity(), HistoryListener {
 //                isDailyAwesomeEnabled = true
 //                savePermissionState("dailyAwesomePermission", true)
             } else {
+                // Permission denied
 //                isDailyAwesomeEnabled = false
                 permissionDeniedCount++
 //                savePermissionState("dailyAwesomePermission", false)
 
                 if (permissionDeniedCount == 1) {
+                    // First denial: show rationale again
                     if (shouldShowRequestPermissionRationale(Manifest.permission.USE_FULL_SCREEN_INTENT)) {
                         showPermissionRationale()
                     }
@@ -732,41 +742,76 @@ class HomeActivity : BaseActivity(), HistoryListener {
             .show()
     }
 
-    private fun loadShowBannerAd() {
-        adLoadCount++
-        // Log the number of times the ad has been loaded
-        Log.e("AdLoadCount", "Ad has been loaded $adLoadCount times")
-        AdsProvider.bannerAll.config(
-            getSharedPreferences("RemoteConfig", MODE_PRIVATE).getBoolean(
-                banner,
-                true
-            )
-        )
-        AdsProvider.bannerAll.loadAds(MyApplication.getApplication())
-        showBannerAd(AdsProvider.bannerAll, findViewById(R.id.bannerFr), keepAdsWhenLoading = true)
-        findViewById<FrameLayout>(R.id.bannerFr).visibility = View.VISIBLE
+    private fun hideSystemUI() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.insetsController?.let { controller ->
+                controller.hide(WindowInsets.Type.navigationBars())
+                controller.systemBarsBehavior =
+                    WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility = (
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    )
+        }
     }
+
+
+//    private fun loadShowBannerAd() {
+//        adLoadCount++
+//        // Log the number of times the ad has been loaded
+//        Log.e("AdLoadCount", "Ad has been loaded $adLoadCount times")
+//        AdsProvider.bannerAll.config(
+//            getSharedPreferences("RemoteConfig", MODE_PRIVATE).getBoolean(
+//                banner,
+//                true
+//            )
+//        )
+//        AdsProvider.bannerAll.loadAds(MyApplication.getApplication())
+//        showBannerAd(AdsProvider.bannerAll, findViewById(R.id.bannerFr), keepAdsWhenLoading = true)
+//        findViewById<FrameLayout>(R.id.bannerFr).visibility = View.VISIBLE
+//    }
 
     private fun handleNavigation(menuItem: MenuItem) {
         when (menuItem.itemId) {
             R.id.nav_home -> {
-                checkNetworkAndLoadAds()
+//                checkNetworkAndLoadAds()
                 navController.navigate(R.id.nav_home)
             }
 
             R.id.nav_create -> {
-                checkNetworkAndLoadAds()
+//                checkNetworkAndLoadAds()
                 CustomFirebaseEvents.logEvent(
                     context = this,
                     screenName = "Tab Create",
                     trigger = "User tap tab Create",
                     eventName = "tab_create_scr"
                 )
-                AdsProvider.interCreate.showAds(
-                    activity = this,
-                    onNextAction = { adShown ->
-                        navController.navigate(R.id.nav_create)
-                    })
+
+                if (com.manual.mediation.library.sotadlib.utils.NetworkCheck.isNetworkAvailable(context)
+                    && getSharedPreferences("RemoteConfig", Context.MODE_PRIVATE)
+                        .getString(INTERSTITIAL_ENTER_CREATE_QR, "ON").equals("ON", ignoreCase = true)
+                ) {
+                    InterstitialClassAdMob.showIfAvailableOrLoadAdMobInterstitial(
+                        context = context,
+                        "Translation",
+                        onAdClosedCallBackAdmob = {
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                navController.navigate(R.id.nav_create)
+                            }, 300)
+                        },
+                        onAdShowedCallBackAdmob = {
+                        }
+                    )
+                } else {
+                    navController.navigate(R.id.nav_create)
+                }
+
+
             }
 
             R.id.nav_translate -> {
@@ -785,9 +830,9 @@ class HomeActivity : BaseActivity(), HistoryListener {
             }
 
             R.id.nav_settings -> {
-                checkNetworkAndLoadAds()
+//                checkNetworkAndLoadAds()
                 navController.navigate(R.id.settingFragment)
-                findViewById<ConstraintLayout>(R.id.clbanner).visibility = View.VISIBLE
+                binding.adViewContainer.visibility= View.VISIBLE
             }
         }
     }
@@ -865,7 +910,6 @@ class HomeActivity : BaseActivity(), HistoryListener {
         }
     }
 
-
     private fun showSettingsRedirectDialog() {
         AlertDialog.Builder(this)
             .setTitle("Permission Required")
@@ -881,6 +925,7 @@ class HomeActivity : BaseActivity(), HistoryListener {
             .show()
     }
 
+
     private fun updatePermissionState(permissionKey: String, isGranted: Boolean) {
         val index = permissionsList.indexOfFirst { it.key == permissionKey }
         if (index != -1) {
@@ -891,43 +936,152 @@ class HomeActivity : BaseActivity(), HistoryListener {
         }
     }
 
-    fun checkNetworkAndLoadAds() {
-        val adLayout: FrameLayout = findViewById(R.id.bannerFr)
-        val adLayoutcl: ConstraintLayout = findViewById(R.id.clbanner)
-        if (NetworkCheck.isNetworkAvailable(this) && getSharedPreferences(
+
+      fun checkNetworkAndLoadAds() {
+        if (com.manual.mediation.library.sotadlib.utils.NetworkCheck.isNetworkAvailable(this) && this.getSharedPreferences(
                 "RemoteConfig",
-                MODE_PRIVATE
-            ).getBoolean(banner, true)
+                Context.MODE_PRIVATE
+            ).getString(
+                BANNER_BOTTOM_HOME, "ON"
+            ).equals("ON", true)
         ) {
-            adLayout.visibility = View.VISIBLE
-            loadShowBannerAd()
+            if (NativeMaster.collapsibleBannerAdMobHashMap!!.containsKey("HomeActivity")) {
+                val collapsibleAdView: AdView? =
+                    NativeMaster.collapsibleBannerAdMobHashMap!!["HomeActivity"]
+                Handler().postDelayed({
+                    binding.shimmerLayoutBanner.stopShimmer()
+                    binding.shimmerLayoutBanner.visibility = View.GONE
+                    binding.adViewContainer.removeView(binding.shimmerLayoutBanner)
+                    binding.separator.visibility=View.VISIBLE
+
+                    val parent = collapsibleAdView?.parent as? ViewGroup
+                    parent?.removeView(collapsibleAdView)
+
+                    binding.adViewContainer.addView(collapsibleAdView)
+                }, 500)
+            } else {
+                loadBanner()
+            }
         } else {
-            adLayout.visibility = View.GONE // Hide the ad layout if no network
-            adLayoutcl.visibility = View.GONE
+            binding.adViewContainer.visibility = View.GONE
+            binding.shimmerLayoutBanner.stopShimmer()
+            binding.shimmerLayoutBanner.visibility = View.GONE
+            binding.separator.visibility=View.GONE
 
         }
     }
 
-    fun reloadAds() {
-        Log.d("AdReload", "Starting to reload ads...")
-        AdsProvider.bannerAll.loadAds(MyApplication.getApplication())
-        Log.d("AdReload", "Ads load requested.")
+    private fun loadBanner() {
+        val adView = AdView(this)
+        adView.setAdSize(adSize)
+        val pref =getSharedPreferences("RemoteConfig", MODE_PRIVATE)
+        val adId  =if (!BuildConfig.DEBUG){
+            pref.getString(AD_ID_BANNER_HOME,"ca-app-pub-3747520410546258/8310988484")
+        }
+        else{
+            resources.getString(R.string.ADMOB_BANNER_SPLASH)
+        }
+        if (adId != null) {
+            adView.adUnitId = adId
+        }
+        val extras = Bundle()
+        extras.putString("collapsible", "bottom")
+
+        val adRequest = AdRequest.Builder()
+            .addNetworkExtrasBundle(AdMobAdapter::class.java, extras)
+            .build()
+
+        adView.loadAd(adRequest)
+        adView.adListener = object : AdListener() {
+            override fun onAdLoaded() {
+                binding.adViewContainer.removeAllViews()
+                binding.adViewContainer.addView(adView)
+                if (getSharedPreferences("RemoteConfig", MODE_PRIVATE).getString(BANNER_HOME, "SAVE").equals("SAVE")) {
+                    NativeMaster.collapsibleBannerAdMobHashMap!!["HomeFragment"] = adView
+                }
+
+                binding.shimmerLayoutBanner?.stopShimmer()
+                binding.shimmerLayoutBanner?.visibility = View.GONE
+                binding.separator.visibility=View.VISIBLE
+            }
+
+            override fun onAdFailedToLoad(error: LoadAdError) {
+                binding.shimmerLayoutBanner?.stopShimmer()
+                binding.shimmerLayoutBanner?.visibility = View.GONE
+                binding.separator.visibility=View.GONE
+            }
+
+            override fun onAdOpened() {
+
+            }
+
+            override fun onAdClicked() {
+
+            }
+
+            override fun onAdClosed() {
+
+            }
+        }
     }
 
+    private val adSize: AdSize
+        get() {
+            val display = this.windowManager.defaultDisplay
+            val outMetrics = DisplayMetrics()
+            display.getMetrics(outMetrics)
+
+            val density = outMetrics.density
+
+            var adWidthPixels = binding.adViewContainer.width.toFloat()
+            if (adWidthPixels == 0f) {
+                adWidthPixels = outMetrics.widthPixels.toFloat()
+            }
+            val adWidth = (adWidthPixels / density).toInt()
+            return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidth)
+        }
+
+
+    fun hideBannerAd() {
+        binding.adViewContainer.visibility = View.GONE
+    }
+
+    fun showBannerAd() {
+        binding.adViewContainer.visibility = View.VISIBLE
+    }
+
+
     private fun onBatchClick() {
-        checkNetworkAndLoadAds()
+//        checkNetworkAndLoadAds()
         CustomFirebaseEvents.logEvent(
             context = this,
             screenName = "Tab Translate",
             trigger = "User tap tab Translate",
             eventName = "tab_translate"
         )
-        AdsProvider.interCreate.showAds(
-            activity = this,
-            onNextAction = { adShown ->
-                startActivity(Intent(this@HomeActivity, PhotoTranslaterActivity::class.java))
-            }
-        )
+
+        if (com.manual.mediation.library.sotadlib.utils.NetworkCheck.isNetworkAvailable(context)
+            && getSharedPreferences("RemoteConfig", Context.MODE_PRIVATE)
+                .getString(INTERSTITIAL_ENTER_TRANSLATION, "ON").equals("ON", ignoreCase = true)
+        ) {
+            InterstitialClassAdMob.showIfAvailableOrLoadAdMobInterstitial(
+                context = context,
+                "Translation",
+                onAdClosedCallBackAdmob = {
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        startActivity(Intent(this@HomeActivity, PhotoTranslaterActivity::class.java))
+                    }, 100)
+                },
+                onAdShowedCallBackAdmob = {
+                }
+            )
+        } else {
+            startActivity(Intent(this@HomeActivity, PhotoTranslaterActivity::class.java))
+
+        }
+
+
+
     }
 
     private fun handleScanResult(result: ActivityResult) {
@@ -964,7 +1118,7 @@ class HomeActivity : BaseActivity(), HistoryListener {
             isScanning = false
         }
     }
-    
+
     fun updateAdLayoutVisibility(
         selectedTab: Int, // Current selected tab
         isAllEmpty: Boolean,
@@ -975,7 +1129,6 @@ class HomeActivity : BaseActivity(), HistoryListener {
         val adLayout = findViewById<View>(R.id.bannerFr)
         val clBannerLayout = findViewById<ConstraintLayout>(R.id.clbanner)
         val navController = findNavController(R.id.nav_host_fragment)
-
 
         // Check if the current destination is HistoryFragment
         val isHistoryFragmentVisible = navController.currentDestination?.id == R.id.nav_history
@@ -1002,17 +1155,12 @@ class HomeActivity : BaseActivity(), HistoryListener {
     }
 
     fun updateAdLayoutVisibility(shouldShowAd: Boolean) {
-        val adLayout = findViewById<View>(R.id.bannerFr)
-        val clBannerLayout = findViewById<ConstraintLayout>(R.id.clbanner)
 
         if (shouldShowAd) {
-            adLayout?.visibility = View.VISIBLE
-            clBannerLayout?.visibility = View.VISIBLE
+            shouldShowAd
         } else {
-            adLayout?.visibility = View.GONE
-            clBannerLayout?.visibility = View.GONE
+           hideBannerAd()
         }
-
     }
 
     override fun onHistoryListEmpty(

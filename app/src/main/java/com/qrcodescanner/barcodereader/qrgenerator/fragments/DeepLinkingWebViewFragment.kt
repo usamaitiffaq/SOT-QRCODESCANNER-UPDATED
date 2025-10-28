@@ -208,7 +208,7 @@ class DeepLinkingWebViewFragment : Fragment() {
             }
         }
 
-        val download = requireActivity().findViewById<ImageView>(R.id.ivDownload)
+        val download = requireActivity().findViewById<TextView>(R.id.ivDownload)
         if (download != null) {
             download.visibility = View.GONE
         }

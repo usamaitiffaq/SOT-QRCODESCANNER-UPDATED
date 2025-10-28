@@ -21,7 +21,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
-import apero.aperosg.monetization.util.showNativeAd
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
@@ -30,7 +29,7 @@ import com.qrcodescanner.barcodereader.qrgenerator.myapplication.MyApplication
 import com.qrcodescanner.barcodereader.qrgenerator.R
 import com.qrcodescanner.barcodereader.qrgenerator.databinding.FragmentCreateQRorBarCodeBinding
 import com.qrcodescanner.barcodereader.qrgenerator.ads.NetworkCheck
-import com.qrcodescanner.barcodereader.qrgenerator.utils.AdsProvider
+
 import com.qrcodescanner.barcodereader.qrgenerator.utils.native_result
 
 
@@ -200,15 +199,15 @@ class CreateQRorBarCodeFragment : Fragment() {
 
         Log.e("AdStatus","isAdEnabled: "+isAdEnabled)
 
-        if (NetworkCheck.isNetworkAvailable(requireContext()) && isAdEnabled) {
-            AdsProvider.nativeResult.config(requireActivity().getSharedPreferences("RemoteConfig",AppCompatActivity.MODE_PRIVATE).getBoolean(
-                native_result, true))
-            AdsProvider.nativeResult.loadAds(MyApplication.getApplication())
-            showNativeAd(AdsProvider.nativeResult, requireActivity().findViewById(R.id.layoutAdNative), R.layout.layout_home_native_ad)
-        }
-        else{
-            requireActivity().findViewById<FrameLayout>(R.id.layoutAdNative).visibility = View.GONE
-        }
+//        if (NetworkCheck.isNetworkAvailable(requireContext()) && isAdEnabled) {
+//            AdsProvider.nativeResult.config(requireActivity().getSharedPreferences("RemoteConfig",AppCompatActivity.MODE_PRIVATE).getBoolean(
+//                native_result, true))
+//            AdsProvider.nativeResult.loadAds(MyApplication.getApplication())
+//            showNativeAd(AdsProvider.nativeResult, requireActivity().findViewById(R.id.layoutAdNative), R.layout.layout_home_native_ad)
+//        }
+//        else{
+//            requireActivity().findViewById<FrameLayout>(R.id.layoutAdNative).visibility = View.GONE
+//        }
         val TopText: TextView = requireActivity().findViewById(R.id.mainText)
         TopText.visibility = View.VISIBLE
 //        if (isFromBarcodeReader) {
@@ -217,7 +216,7 @@ class CreateQRorBarCodeFragment : Fragment() {
 //            TopText.text = getString(R.string.create_qr_code)  // Default case
 //        }
 //        TopText.text = getString(R.string.create_qr_code)
-        val download = requireActivity().findViewById<ImageView>(R.id.ivDownload)
+        val download = requireActivity().findViewById<TextView>(R.id.ivDownload)
         if (download != null) {
             download.visibility = View.GONE
         }

@@ -20,12 +20,12 @@ object TemplateUtils {
     val getTemplateList = mapOf(
         0 to listOf(
             TemplateModel(
-                "Hot 1", R.drawable.social1, R.drawable.socialbg1,
-                "#00770C".toColorInt()
+                "Hot 1", R.drawable.social1, R.drawable.ic_social1,
+                "#FFFFFF".toColorInt()
             ),
             TemplateModel(
-                "Hot 2", R.drawable.social2, R.drawable.socialbg2,
-                "#93CEEF".toColorInt()
+                "Hot 2", R.drawable.social2, R.drawable.ic_social2,
+                "#FFFFFF".toColorInt()
             ),
             TemplateModel(
                 "Hot 3", R.drawable.social3, R.drawable.socialbg3,
@@ -66,22 +66,20 @@ object TemplateUtils {
                 "#003E6B".toColorInt()
             ),
             TemplateModel(
-                "New 2", R.drawable.social2, R.drawable.socialbg2,
-                "#93CEEF".toColorInt()
+                "New 2", R.drawable.social2, R.drawable.ic_social2,
+                "#FFFFFF".toColorInt()
+            ),
+            TemplateModel("Business 16", R.drawable.business16, R.drawable.businessbg16,
+                "#000000".toColorInt()),
+            ),
+            2 to listOf(
+            TemplateModel(
+                "Social 1", R.drawable.social1, R.drawable.ic_social1,
+                "#FFFFFF".toColorInt()
             ),
             TemplateModel(
-                "Business 16", R.drawable.business16, R.drawable.businessbg16,
-                "#000000".toColorInt()
-            ),
-        ),
-        2 to listOf(
-            TemplateModel(
-                "Social 1", R.drawable.social1, R.drawable.socialbg1,
-                "#00770C".toColorInt()
-            ),
-            TemplateModel(
-                "Social 2", R.drawable.social2, R.drawable.socialbg2,
-                "#93CEEF".toColorInt()
+                "Social 2", R.drawable.social2, R.drawable.ic_social2,
+                "#FFFFFF".toColorInt()
             ),
             TemplateModel(
                 "Social 3", R.drawable.social3, R.drawable.socialbg3,
@@ -231,10 +229,10 @@ object TemplateUtils {
                 "Wifi 18", R.drawable.wifi18, R.drawable.wifibg18,
                 "#FECD0E".toColorInt()
             ),
-            TemplateModel(
-                "Wifi 19", R.drawable.wifi19, R.drawable.wifibg19,
-                "#FFFFFF".toColorInt()
-            ),
+//            TemplateModel(
+//                "Wifi 19", R.drawable.wifi19, R.drawable.wifibg19,
+//                "#FFFFFF".toColorInt()
+//            ),
             TemplateModel(
                 "Wifi 20", R.drawable.wifi20, R.drawable.wifibg20,
                 "#FFFFFF".toColorInt()
@@ -266,18 +264,6 @@ object TemplateUtils {
                 "Event 6", R.drawable.event6, R.drawable.eventbg6,
                 "#000000".toColorInt()
             ),
-//            TemplateModel(
-//                "Event 7", R.drawable.event7, R.drawable.eventbg7,
-//                "#BC6803".toColorInt()
-//            ),
-//            TemplateModel(
-//                "Event 8", R.drawable.event8, R.drawable.eventbg8,
-//                "#000000".toColorInt()
-//            ),
-//            TemplateModel(
-//                "Event 9", R.drawable.event9, R.drawable.eventbg9,
-//                "#011D32".toColorInt()
-//            ),
 
             TemplateModel(
                 "Event 10", R.drawable.event10, R.drawable.eventbg10,
@@ -297,23 +283,16 @@ object TemplateUtils {
             ),
             TemplateModel(
                 "Event 14", R.drawable.event14, R.drawable.eventbg14,
-                "#FFFFFF".toColorInt()
+                "#822FBF".toColorInt()
             ),
-//            TemplateModel(
-//                "Event 15", R.drawable.event15, R.drawable.eventbg15,
-//                "#FF002E".toColorInt()
-//            ),
-//            TemplateModel(
-//                "Event 16", R.drawable.event16, R.drawable.eventbg16,
-//                "#FF002E".toColorInt()
-//            ),
+
             TemplateModel(
                 "Event 17", R.drawable.event17, R.drawable.eventbg17,
                 "#000000".toColorInt()
             ),
             TemplateModel(
                 "Event 18", R.drawable.event18, R.drawable.eventbg18,
-                "#FF002E".toColorInt()
+                "#DB073A".toColorInt()
             ),
             TemplateModel(
                 "Event 19", R.drawable.event19, R.drawable.eventbg19,
@@ -391,16 +370,8 @@ object TemplateUtils {
             ),
             TemplateModel(
                 "Business 17", R.drawable.business17, R.drawable.businessbg17,
-                "#000000".toColorInt()
+                "#B64A01".toColorInt()
             )
-//            TemplateModel(
-//                "Business 18", R.drawable.business18, R.drawable.businessbg18,
-//                "#000000".toColorInt()
-//            ),
-
-//            TemplateModel("VCard 1", R.drawable.ic_template),
-//            TemplateModel("VCard 2", R.drawable.ic_template),
-//            TemplateModel("VCard 3", R.drawable.ic_template)
         ),
 
         6 to listOf(
@@ -436,90 +407,6 @@ object TemplateUtils {
                 "Work19", R.drawable.work19, R.drawable.workbg19,
                 "#FFFFFF".toColorInt()
             )
-
-//            TemplateModel(
-//                "BlockChain1", R.drawable.blockchain1, R.drawable.blochainbg1,
-//                "#000000".toColorInt()
-//            ),
-//            TemplateModel(
-//                "BlockChain2", R.drawable.blockchain2, R.drawable.blochainbg2,
-//                "#000000".toColorInt()
-//            ),
-//            TemplateModel(
-//                "BlockChain3", R.drawable.blockchain3, R.drawable.blochainbg3,
-//                "#000000".toColorInt()
-//            ),
-//            TemplateModel(
-//                "BlockChain4", R.drawable.blockchain4, R.drawable.blochainbg4,
-//                "#000000".toColorInt()
-//            ),
-//            TemplateModel(
-//                "BlockChain5", R.drawable.blockchain5, R.drawable.blochainbg5,
-//                "#000000".toColorInt()
-//            ),TemplateModel(
-//                "BlockChain6", R.drawable.blockchain6, R.drawable.blochainbg6,
-//                "#000000".toColorInt()
-//            ),
-//            TemplateModel(
-//                "BlockChain7", R.drawable.blockchain7, R.drawable.blochainbg7,
-//                "#000000".toColorInt()
-//            ),
-//            TemplateModel(
-//                "BlockChain8", R.drawable.blockchain8, R.drawable.blochainbg8,
-//                "#000000".toColorInt()
-//            ),
-//            TemplateModel(
-//                "BlockChain9", R.drawable.blockchain9, R.drawable.blochainbg9,
-//                "#000000".toColorInt()
-//            ),
-//            TemplateModel(
-//                "BlockChain10", R.drawable.blockchain10, R.drawable.blochainbg10,
-//                "#000000".toColorInt()
-//            ),
-//            TemplateModel(
-//                "BlockChain11", R.drawable.blockchain11, R.drawable.blochainbg11,
-//                "#000000".toColorInt()
-//            ),
-//            TemplateModel(
-//                "BlockChain12", R.drawable.blockchain12, R.drawable.blochainbg12,
-//                "#000000".toColorInt()
-//            ),
-//            TemplateModel(
-//                "BlockChain13", R.drawable.blockchain13, R.drawable.blochainbg13,
-//                "#000000".toColorInt()
-//            ),
-//            TemplateModel(
-//                "BlockChain14", R.drawable.blockchain14, R.drawable.blochainbg14,
-//                "#000000".toColorInt()
-//            ),
-//            TemplateModel(
-//                "BlockChain15", R.drawable.blockchain15, R.drawable.blochainbg15,
-//                "#000000".toColorInt()
-//            ),
-//            TemplateModel(
-//                "BlockChain16", R.drawable.blockchain16, R.drawable.blochainbg16,
-//                "#000000".toColorInt()
-//            ),
-//            TemplateModel(
-//                "BlockChain17", R.drawable.blockchain17, R.drawable.blochainbg17,
-//                "#000000".toColorInt()
-//            ),
-//            TemplateModel(
-//                "BlockChain18", R.drawable.blockchain18, R.drawable.blochainbg18,
-//                "#000000".toColorInt()
-//            ),
-//            TemplateModel(
-//                "BlockChain19", R.drawable.blockchain19, R.drawable.blochainbg19,
-//                "#000000".toColorInt()
-//            ),
-//            TemplateModel(
-//                "BlockChain20", R.drawable.blockchain20, R.drawable.blochainbg20,
-//                "#000000".toColorInt()
-//            )
-
-//            TemplateModel("Blockchain 1", R.drawable.ic_template),
-//            TemplateModel("Blockchain 2", R.drawable.ic_template),
-//            TemplateModel("Blockchain 3", R.drawable.ic_template)
         ),
 
 

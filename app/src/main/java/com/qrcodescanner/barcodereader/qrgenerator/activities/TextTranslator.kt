@@ -1,6 +1,7 @@
 package com.qrcodescanner.barcodereader.qrgenerator.activities
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -10,22 +11,33 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
-import apero.aperosg.monetization.util.showBannerAd
+import com.google.ads.mediation.admob.AdMobAdapter
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.LoadAdError
 import com.google.android.material.textfield.TextInputEditText
+import com.manual.mediation.library.sotadlib.utils.hideSystemUIUpdated
+import com.qrcodescanner.barcodereader.qrgenerator.BuildConfig
 import com.qrcodescanner.barcodereader.qrgenerator.myapplication.MyApplication
 import com.qrcodescanner.barcodereader.qrgenerator.R
+import com.qrcodescanner.barcodereader.qrgenerator.ads.NativeMaster
 import com.qrcodescanner.barcodereader.qrgenerator.ads.NetworkCheck
 import com.qrcodescanner.barcodereader.qrgenerator.databinding.ActivityTextTranslatorBinding
-import com.qrcodescanner.barcodereader.qrgenerator.utils.AdsProvider
+
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,8 +45,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
 import com.qrcodescanner.barcodereader.qrgenerator.utils.LanguageRecognizer
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_BANNER_HOME
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.BANNER_BOTTOM_TRANSLATION_CONVERTED
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.BANNER_HOME
 import com.qrcodescanner.barcodereader.qrgenerator.utils.TranslatorHelper
 import com.qrcodescanner.barcodereader.qrgenerator.utils.banner
+import kotlin.collections.set
 
 class TextTranslator : AppCompatActivity() {
     private lateinit var viewBinding: ActivityTextTranslatorBinding
@@ -71,18 +87,9 @@ class TextTranslator : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityTextTranslatorBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
-        supportActionBar?.hide()
-        if (NetworkCheck.isNetworkAvailable(this@TextTranslator)) {
-            loadShowBannerAd()
-        }
-
-        adReloadRunnable = Runnable {
-            Log.d("AdTimer", "10 seconds passed. Reloading ad...")
-            checkNetworkAndLoadAds()
-            startAdReloadTimer()  // Schedule the next reload
-        }
-
-        hideSystemUI()
+        setStatusBarColor(this@TextTranslator,resources.getColor(R.color.statusBar))
+        this.hideSystemUIUpdated()
+        checkNetworkAndLoadAds()
         val sharedPreferences = getSharedPreferences("LanguagePreferences", MODE_PRIVATE)
         savedLanguage = sharedPreferences.getString("LANGUAGE_NAME", "English")
         detectedLanguageCode = sharedPreferences.getString(
@@ -192,47 +199,129 @@ class TextTranslator : AppCompatActivity() {
     }
 
     fun checkNetworkAndLoadAds() {
-        if (NetworkCheck.isNetworkAvailable(this@TextTranslator)) {
-            loadShowBannerAd()
-        }
-    }
+        if (com.manual.mediation.library.sotadlib.utils.NetworkCheck.isNetworkAvailable(this) && this.getSharedPreferences(
+                "RemoteConfig",
+                Context.MODE_PRIVATE
+            ).getString(
+                BANNER_BOTTOM_TRANSLATION_CONVERTED, "ON"
+            ).equals("ON", true)
+        ) {
+            if (NativeMaster.collapsibleBannerAdMobHashMap!!.containsKey("HomeActivity")) {
+                val collapsibleAdView: AdView? =
+                    NativeMaster.collapsibleBannerAdMobHashMap!!["HomeActivity"]
+                Handler().postDelayed({
+                    viewBinding.shimmerLayoutBanner.stopShimmer()
+                    viewBinding.shimmerLayoutBanner.visibility = View.GONE
+                    viewBinding.adViewContainer.removeView(viewBinding.shimmerLayoutBanner)
+                    viewBinding.separator.visibility=View.VISIBLE
 
-    private fun loadShowBannerAd() {
-        adLoadCount++
-        // Log the number of times the ad has been loaded
-        Log.e("AdLoadCount", "Ad has been loaded $adLoadCount times")
+                    val parent = collapsibleAdView?.parent as? ViewGroup
+                    parent?.removeView(collapsibleAdView)
 
-        AdsProvider.bannerAll.config(
-            getSharedPreferences("RemoteConfig", MODE_PRIVATE).getBoolean(
-                banner,
-                true
-            )
-        )
-        AdsProvider.bannerAll.loadAds(MyApplication.getApplication())
-        showBannerAd(AdsProvider.bannerAll, findViewById(R.id.bannerFr), keepAdsWhenLoading = true)
-        findViewById<FrameLayout>(R.id.bannerFr).visibility = View.VISIBLE
-    }
-
-    private fun hideSystemUI() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // For Android 11 and above
-            window.setDecorFitsSystemWindows(false)
-            val controller = window.insetsController
-            controller?.hide(WindowInsets.Type.systemBars())
-            controller?.systemBarsBehavior =
-                WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                    viewBinding.adViewContainer.addView(collapsibleAdView)
+                }, 500)
+            } else {
+                loadBanner()
+            }
         } else {
-            // For Android 10 and below
-            window.decorView.systemUiVisibility = (
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            or View.SYSTEM_UI_FLAG_FULLSCREEN
-                            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    )
+            viewBinding.adViewContainer.visibility = View.GONE
+            viewBinding.shimmerLayoutBanner.stopShimmer()
+            viewBinding.shimmerLayoutBanner.visibility = View.GONE
+            viewBinding.separator.visibility=View.GONE
+
         }
     }
+
+    private fun loadBanner() {
+        val adView = AdView(this)
+        adView.setAdSize(adSize)
+        val pref =getSharedPreferences("RemoteConfig", MODE_PRIVATE)
+        val adId  =if (!BuildConfig.DEBUG){
+            pref.getString(AD_ID_BANNER_HOME,"ca-app-pub-3747520410546258/8310988484")
+        }
+        else{
+            resources.getString(R.string.ADMOB_BANNER_SPLASH)
+        }
+        if (adId != null) {
+            adView.adUnitId = adId
+        }
+        val extras = Bundle()
+        extras.putString("collapsible", "bottom")
+
+        val adRequest = AdRequest.Builder()
+            .addNetworkExtrasBundle(AdMobAdapter::class.java, extras)
+            .build()
+
+        adView.loadAd(adRequest)
+        adView.adListener = object : AdListener() {
+            override fun onAdLoaded() {
+                viewBinding.adViewContainer.removeAllViews()
+                viewBinding.adViewContainer.addView(adView)
+                if (getSharedPreferences("RemoteConfig", MODE_PRIVATE).getString(BANNER_HOME, "SAVE").equals("SAVE")) {
+                    NativeMaster.collapsibleBannerAdMobHashMap!!["HomeFragment"] = adView
+                }
+
+                viewBinding.shimmerLayoutBanner?.stopShimmer()
+                viewBinding.shimmerLayoutBanner?.visibility = View.GONE
+                viewBinding.separator.visibility=View.VISIBLE
+            }
+
+            override fun onAdFailedToLoad(error: LoadAdError) {
+                viewBinding.shimmerLayoutBanner?.stopShimmer()
+                viewBinding.shimmerLayoutBanner?.visibility = View.GONE
+                viewBinding.separator.visibility=View.GONE
+            }
+
+            override fun onAdOpened() {
+
+            }
+
+            override fun onAdClicked() {
+
+            }
+
+            override fun onAdClosed() {
+
+            }
+        }
+    }
+
+    private val adSize: AdSize
+        get() {
+            val display = this.windowManager.defaultDisplay
+            val outMetrics = DisplayMetrics()
+            display.getMetrics(outMetrics)
+
+            val density = outMetrics.density
+
+            var adWidthPixels = viewBinding.adViewContainer.width.toFloat()
+            if (adWidthPixels == 0f) {
+                adWidthPixels = outMetrics.widthPixels.toFloat()
+            }
+            val adWidth = (adWidthPixels / density).toInt()
+            return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidth)
+        }
+
+    fun setStatusBarColor(activity: Activity, color: Int) {
+        val window = activity.window
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) { // Android 15+
+            window.decorView.setOnApplyWindowInsetsListener { view, insets ->
+                val statusBarInsets = insets.getInsets(WindowInsets.Type.statusBars())
+                view.setBackgroundColor(color)
+
+                // Adjust padding to avoid overlap
+                view.setPadding(0, statusBarInsets.top, 0, 0)
+                insets
+            }
+        } else {
+            // For Android 14 and below
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+            window.statusBarColor = color
+        }
+    }
+
+
 
     @SuppressLint("SetTextI18n")
     private fun translateText(langText: String) {
@@ -264,7 +353,6 @@ class TextTranslator : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        startAdReloadTimer()  // Start or resume the timer when activity is visible
     }
 
     private fun showToast(message: String) {
@@ -284,21 +372,13 @@ class TextTranslator : AppCompatActivity() {
         }
     }
 
-    private fun startAdReloadTimer() {
-        Log.d("AdTimer", "Starting or restarting ad reload timer for 10 seconds.")
-        adReloadHandler.postDelayed(adReloadRunnable, adReloadInterval)
-    }
 
-    private fun stopAdReloadTimer() {
-        Log.d("AdTimer", "Stopping ad reload timer.")
-        adReloadHandler.removeCallbacks(adReloadRunnable)
-    }
+
 
     override fun onPause() {
         super.onPause()
         Log.d("ActivityState", "HomeActivity paused. Stopping ad reload timer.")
-        stopAdReloadTimer()  // Stop the timer when the activity goes into the background
-    }
+          }
 
     private fun pasteFromClipboard() {
         val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager

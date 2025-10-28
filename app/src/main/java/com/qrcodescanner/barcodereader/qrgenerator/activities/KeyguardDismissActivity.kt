@@ -115,11 +115,11 @@ class KeyguardDismissActivity : AppCompatActivity() {
         val btnCheck: LinearLayout = layoutContainer.findViewById(R.id.llmain)
         btnCheck.setOnClickListener {
             val actionIntent = when (layoutId) {
-                1 -> Intent(this, FirstOpenActivity::class.java).apply { putExtra("action", "create_qr") }
-                2 -> Intent(this, FirstOpenActivity::class.java).apply { putExtra("action", "scan_qr") }
-                3 -> Intent(this, FirstOpenActivity::class.java).apply { putExtra("action", "translate_image") }
-                4 -> Intent(this, FirstOpenActivity::class.java).apply { putExtra("action", "doc_scan") }
-                5 -> Intent(this, FirstOpenActivity::class.java).apply { putExtra("action", "barcode_scan") }
+                1 -> Intent(this, FOFActivity::class.java).apply { putExtra("action", "create_qr") }
+                2 -> Intent(this, FOFActivity::class.java).apply { putExtra("action", "scan_qr") }
+                3 -> Intent(this, FOFActivity::class.java).apply { putExtra("action", "translate_image") }
+                4 -> Intent(this, FOFActivity::class.java).apply { putExtra("action", "doc_scan") }
+                5 -> Intent(this, FOFActivity::class.java).apply { putExtra("action", "barcode_scan") }
                 else -> Intent(this, FirstOpenActivity::class.java).apply { putExtra("action", "create_qr") }
             }
             startActivity(actionIntent)

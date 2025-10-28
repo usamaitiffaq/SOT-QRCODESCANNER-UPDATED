@@ -11,6 +11,7 @@ import android.util.Log
 import android.window.SplashScreen
 import androidx.core.app.NotificationCompat
 import com.qrcodescanner.barcodereader.qrgenerator.R
+import com.qrcodescanner.barcodereader.qrgenerator.activities.FOFActivity
 import com.qrcodescanner.barcodereader.qrgenerator.activities.FirstOpenActivity
 import com.qrcodescanner.barcodereader.qrgenerator.activities.SplashQRActivity
 
@@ -41,7 +42,7 @@ class NotificationHelper(private val context: Context) {
             "Preparing to send notification: Title='$title', Content='$content'"
         )
 
-        val resultIntent = Intent(context, FirstOpenActivity::class.java)
+        val resultIntent = Intent(context, FOFActivity::class.java)
       // Create the TaskStackBuilder.
         val resultPendingIntent: PendingIntent? = TaskStackBuilder.create(context).run {
             // Add the intent, which inflates the back stack.

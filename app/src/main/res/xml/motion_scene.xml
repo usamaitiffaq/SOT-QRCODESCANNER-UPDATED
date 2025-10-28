@@ -10,14 +10,14 @@
         <OnSwipe
             motion:touchAnchorId="@id/cvTop"
             motion:touchAnchorSide="bottom"
-            motion:dragDirection="dragUp" /> <!-- Allow upward drag -->
+            motion:dragDirection="dragUp" />
     </Transition>
 
     <ConstraintSet android:id="@+id/start">
         <Constraint
             android:id="@id/cvTop"
             android:layout_width="match_parent"
-            android:layout_height="250dp"
+            android:layout_height="310dp"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toTopOf="parent">
             <CustomAttribute

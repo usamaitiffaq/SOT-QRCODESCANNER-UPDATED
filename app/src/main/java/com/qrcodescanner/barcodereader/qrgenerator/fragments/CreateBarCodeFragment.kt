@@ -14,18 +14,18 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
-import apero.aperosg.monetization.util.showNativeAd
+//
 import com.qrcodescanner.barcodereader.qrgenerator.myapplication.MyApplication
 import com.qrcodescanner.barcodereader.qrgenerator.R
 import com.qrcodescanner.barcodereader.qrgenerator.ads.CustomFirebaseEvents
 import com.qrcodescanner.barcodereader.qrgenerator.ads.NetworkCheck
-import com.qrcodescanner.barcodereader.qrgenerator.utils.AdsProvider
+
 import com.qrcodescanner.barcodereader.qrgenerator.utils.native_create
 
 class CreateBarCodeFragment : Fragment() {
-
     private lateinit var enterEmailText: EditText
     private lateinit var clBarCode: View
     private var selectedType: String = "DataMatrix"
@@ -35,7 +35,7 @@ class CreateBarCodeFragment : Fragment() {
     @SuppressLint("MissingInflatedId")
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_create_bar_code, container, false)
-
+        requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.appBlue)
         CustomFirebaseEvents.logEvent(context = requireActivity(), screenName = "Create Barcode screen", trigger = "App display Create Barcode screen", eventName = "createbarcode_scr_")
         enterEmailText = view.findViewById(R.id.enterEmailText)
         clBarCode = view.findViewById(R.id.clBarCode)
@@ -279,13 +279,16 @@ class CreateBarCodeFragment : Fragment() {
     override fun onResume() {
         super.onResume()
 
-        if (NetworkCheck.isNetworkAvailable(requireContext())) {
-            AdsProvider.nativeCreate.config(requireActivity().getSharedPreferences("RemoteConfig", AppCompatActivity.MODE_PRIVATE).getBoolean(native_create, true))
-            AdsProvider.nativeCreate.loadAds(MyApplication.getApplication())
-            showNativeAd(AdsProvider.nativeCreate, requireActivity().findViewById(R.id.layoutAdNative), R.layout.layout_home_native_ad)
-        }
+//        if (NetworkCheck.isNetworkAvailable(requireContext())) {
+//            AdsProvider.nativeCreate.config(requireActivity().getSharedPreferences("RemoteConfig", AppCompatActivity.MODE_PRIVATE).getBoolean(native_create, true))
+//            AdsProvider.nativeCreate.loadAds(MyApplication.getApplication())
+//            showNativeAd(AdsProvider.nativeCreate, requireActivity().findViewById(R.id.layoutAdNative), R.layout.layout_home_native_ad)
+//        }
+
         // Set initial main text to "DataMatrix" on resume
-        topText.text = selectedType
+        val TopText: TextView = requireActivity().findViewById(R.id.mainText)
+        TopText.visibility = View.VISIBLE
+        TopText.text = getString(R.string.bar_code_reader)
 
         val back = requireActivity().findViewById<ImageView>(R.id.ivBack)
         if (back != null) {
@@ -305,7 +308,7 @@ class CreateBarCodeFragment : Fragment() {
             ivClose.visibility = View.INVISIBLE
         }
 
-        val download = requireActivity().findViewById<ImageView>(R.id.ivDownload)
+        val download = requireActivity().findViewById<TextView>(R.id.ivDownload)
         if (download != null) {
             download.visibility = View.GONE
         }

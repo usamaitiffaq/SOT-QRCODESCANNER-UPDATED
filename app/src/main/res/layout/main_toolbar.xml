@@ -7,13 +7,14 @@
     android:layoutDirection="ltr"
     android:textDirection="ltr"
     android:background="@color/appBlue">
-<!--    android:background="@drawable/ic_new_toplayer"-->
+
     <ImageView
         android:id="@+id/ivBack"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="7dp"
+        android:layout_marginStart="12dp"
         android:src="@drawable/ic_back"
+        android:layout_margin="@dimen/_10sdp"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -57,17 +58,22 @@
         app:layout_constraintStart_toEndOf="@+id/mainText"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageView
+    <TextView
         android:id="@+id/ivDownload"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_save"
+        android:layout_width="80sp"
+        android:layout_height="@dimen/_20sdp"
         android:visibility="gone"
+        android:text="@string/download"
+        android:gravity="center"
+        android:background="@drawable/save_rounded_bg"
+        android:textColor="@color/appBlue"
         app:layout_constraintBottom_toBottomOf="@+id/mainText"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/ivPro"
         app:layout_constraintTop_toTopOf="@+id/mainText"
         app:layout_constraintVertical_bias="0.8" />
+
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

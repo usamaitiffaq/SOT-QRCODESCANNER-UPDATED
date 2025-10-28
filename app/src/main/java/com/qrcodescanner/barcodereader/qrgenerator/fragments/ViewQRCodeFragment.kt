@@ -34,7 +34,7 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import apero.aperosg.monetization.util.showNativeAd
+
 import com.bumptech.glide.Glide
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
@@ -43,7 +43,7 @@ import com.qrcodescanner.barcodereader.qrgenerator.R
 import com.qrcodescanner.barcodereader.qrgenerator.ads.CustomFirebaseEvents
 import com.qrcodescanner.barcodereader.qrgenerator.ads.NetworkCheck
 import com.qrcodescanner.barcodereader.qrgenerator.database.QRCodeDatabaseHelper
-import com.qrcodescanner.barcodereader.qrgenerator.utils.AdsProvider
+
 import com.qrcodescanner.barcodereader.qrgenerator.utils.native_result
 import java.io.File
 import java.io.FileOutputStream
@@ -59,7 +59,7 @@ class ViewQRCodeFragment : Fragment() {
     private lateinit var tvQrType: TextView
     private lateinit var tvQRCode: TextView
     private lateinit var dbHelper: QRCodeDatabaseHelper // Database helper
-    private lateinit var layoutAdNative: FrameLayout
+    
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_view_q_r_code, container, false)
@@ -74,7 +74,6 @@ class ViewQRCodeFragment : Fragment() {
         tvQrType = view.findViewById(R.id.qrcodeType)
         tvQRCode = view.findViewById(R.id.textViewQRCode)
         btnSave = view.findViewById(R.id.btnSave)
-        layoutAdNative = view.findViewById(R.id.layoutAdNative)
         val isFromHistory = arguments?.getBoolean("isFromHistory", false) ?:false
         // Initialize the database helper
         dbHelper = QRCodeDatabaseHelper(requireContext())
@@ -272,27 +271,13 @@ class ViewQRCodeFragment : Fragment() {
     override fun onResume() {
         super.onResume()
 
-        val isAdEnabled = requireActivity()
-            .getSharedPreferences("RemoteConfig", AppCompatActivity.MODE_PRIVATE)
-            .getBoolean("native_result", true)
 
-        Log.e("AdStatus","isAdEnabled: "+isAdEnabled)
-
-        if (NetworkCheck.isNetworkAvailable(requireContext()) && isAdEnabled) {
-            AdsProvider.nativeResult.config(requireActivity().getSharedPreferences("RemoteConfig",AppCompatActivity.MODE_PRIVATE).getBoolean(
-                native_result, true))
-            AdsProvider.nativeResult.loadAds(MyApplication.getApplication())
-            showNativeAd(AdsProvider.nativeResult, requireActivity().findViewById(R.id.layoutAdNative), R.layout.layout_home_native_ad)
-        }
-        else{
-            layoutAdNative.visibility = View.GONE
-        }
 
         val topText: TextView = requireActivity().findViewById(R.id.mainText)
         topText.visibility = View.VISIBLE
         topText.text = getString(R.string.qr_code_scanner)
 
-        val download = requireActivity().findViewById<ImageView>(R.id.ivDownload)
+        val download = requireActivity().findViewById<TextView>(R.id.ivDownload)
         if (download != null) {
             download.visibility = View.GONE
         }

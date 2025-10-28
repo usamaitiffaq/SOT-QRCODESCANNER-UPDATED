@@ -1,5 +1,6 @@
 package com.qrcodescanner.barcodereader.qrgenerator.activities
 
+import android.app.Activity
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -8,20 +9,19 @@ import android.util.Log
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
-import apero.aperosg.monetization.util.showBannerAd
-import com.qrcodescanner.barcodereader.qrgenerator.myapplication.MyApplication
+import com.manual.mediation.library.sotadlib.utils.hideSystemUIUpdated
 import com.qrcodescanner.barcodereader.qrgenerator.R
 import com.qrcodescanner.barcodereader.qrgenerator.utils.CountryList
 import com.qrcodescanner.barcodereader.qrgenerator.databinding.ActivityAllLanguagesBinding
 import com.qrcodescanner.barcodereader.qrgenerator.adapters.CountryAdapter
 import com.qrcodescanner.barcodereader.qrgenerator.ads.NetworkCheck
 import com.qrcodescanner.barcodereader.qrgenerator.models.AllCountryModel
-import com.qrcodescanner.barcodereader.qrgenerator.utils.AdsProvider
 import com.qrcodescanner.barcodereader.qrgenerator.utils.banner
 
 class AllLanguagesActivity : AppCompatActivity() {
@@ -37,6 +37,9 @@ class AllLanguagesActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityAllLanguagesBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        this.hideSystemUIUpdated()
+        setStatusBarColor(this@AllLanguagesActivity,resources.getColor(R.color.appBlue))
 
         adReloadRunnable = Runnable {
             Log.d("AdTimer", "10 seconds passed. Reloading ad...")
@@ -55,6 +58,24 @@ class AllLanguagesActivity : AppCompatActivity() {
         initRecyclerView()
         setupSearchView()
         loadSelectedLanguage()
+    }
+
+    fun setStatusBarColor(activity: Activity, color: Int) {
+        val window = activity.window
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) { // Android 15+
+            window.decorView.setOnApplyWindowInsetsListener { view, insets ->
+                val statusBarInsets = insets.getInsets(WindowInsets.Type.statusBars())
+                view.setBackgroundColor(color)
+
+                // Adjust padding to avoid overlap
+                view.setPadding(0, statusBarInsets.top, 0, 0)
+                insets
+            }
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+            window.statusBarColor = color
+        }
     }
 
     private fun startAdReloadTimer() {
@@ -94,14 +115,8 @@ class AllLanguagesActivity : AppCompatActivity() {
         // Log the number of times the ad has been loaded
         Log.e("AdLoadCount", "Ad has been loaded $adLoadCount times")
 
-        AdsProvider.bannerAll.config(
-            getSharedPreferences("RemoteConfig", MODE_PRIVATE).getBoolean(
-                banner,
-                true
-            )
-        )
-        AdsProvider.bannerAll.loadAds(MyApplication.getApplication())
-        showBannerAd(AdsProvider.bannerAll, findViewById(R.id.bannerFr), keepAdsWhenLoading = true)
+//        AdsProvider.bannerAll.loadAds(MyApplication.getApplication())
+//        showBannerAd(AdsProvider.bannerAll, findViewById(R.id.bannerFr), keepAdsWhenLoading = true)
         findViewById<FrameLayout>(R.id.bannerFr).visibility = View.VISIBLE
     }
 

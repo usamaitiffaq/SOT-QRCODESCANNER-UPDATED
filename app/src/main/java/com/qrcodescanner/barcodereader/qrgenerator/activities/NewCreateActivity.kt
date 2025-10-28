@@ -1,7 +1,9 @@
 package com.qrcodescanner.barcodereader.qrgenerator.activities
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.app.ProgressDialog
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
@@ -18,6 +20,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
@@ -29,16 +32,18 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import apero.aperosg.monetization.util.showBannerAd
 import com.itextpdf.io.image.ImageDataFactory
 import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfWriter
 import com.itextpdf.layout.element.Image
-import com.qrcodescanner.barcodereader.qrgenerator.myapplication.MyApplication
+import com.manual.mediation.library.sotadlib.utils.hideSystemUIUpdated
+import com.qrcodescanner.barcodereader.qrgenerator.BuildConfig
 import com.qrcodescanner.barcodereader.qrgenerator.R
 import com.qrcodescanner.barcodereader.qrgenerator.ads.NetworkCheck
-import com.qrcodescanner.barcodereader.qrgenerator.utils.AdsProvider
-import com.qrcodescanner.barcodereader.qrgenerator.utils.banner
+import com.qrcodescanner.barcodereader.qrgenerator.ads.NewNativeAdClass
+import com.qrcodescanner.barcodereader.qrgenerator.databinding.ActivityNewCreateBinding
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_NATIVE_INSIDE
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.NATIVE_CREATE_DOCUMENT
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -53,15 +58,17 @@ class NewCreateActivity : AppCompatActivity() {
     private lateinit var imageUris: ArrayList<Uri>
     private lateinit var progressDialog: ProgressDialog
     private lateinit var imageListContainer: LinearLayout
-    private var adLoadCount = 0
+    private lateinit var binding: ActivityNewCreateBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_new_create)
-        hideSystemUI()
+        binding= ActivityNewCreateBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setStatusBarColor(this@NewCreateActivity,resources.getColor(R.color.statusBar))
+        this.hideSystemUIUpdated()
         imageUris = intent.getParcelableArrayListExtra("imageUris") ?: arrayListOf()
         documentName = intent.getStringExtra("documentName") ?: "Document"
-        checkNetworkAndLoadAds() // Check network and load ads in onCreate
-        // Initialize views
+
         documentNameTextView = findViewById(R.id.documentName)
         val backButton = findViewById<ImageButton>(R.id.backButton)
         val editDocumentNameButton = findViewById<ImageView>(R.id.editDocumentName)
@@ -81,6 +88,18 @@ class NewCreateActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        if (NetworkCheck.isNetworkAvailable(this) &&
+            getSharedPreferences("RemoteConfig", Context.MODE_PRIVATE)?.getString(
+                NATIVE_CREATE_DOCUMENT, "ON"
+            ).equals("ON", true)
+        ) {
+            binding.nativeAdContainerAd.visibility = View.VISIBLE
+            loadAdmobNativeAd()
+        } else {
+            binding.nativeAdContainerAd.visibility = View.GONE
+            binding.shimmerLayout.stopShimmer()
+        }
+
         saveDocumentButton.setOnClickListener {
             val intent = Intent(
                 this@NewCreateActivity,
@@ -91,31 +110,56 @@ class NewCreateActivity : AppCompatActivity() {
             startActivity(intent) }
     }
 
-    private fun checkNetworkAndLoadAds() {
-        val adLayout: FrameLayout = findViewById(R.id.bannerFr)
-        if (NetworkCheck.isNetworkAvailable(this) && getSharedPreferences("RemoteConfig", MODE_PRIVATE).getBoolean(banner, true)) {
-            loadShowBannerAd()
-            adLayout.visibility = View.VISIBLE
+
+        private fun loadAdmobNativeAd() {
+        val pref = getSharedPreferences("RemoteConfig", MODE_PRIVATE)
+        val adId  =if (!BuildConfig.DEBUG){
+            pref.getString(AD_ID_NATIVE_INSIDE,"ca-app-pub-3747520410546258/1477166335")
+        }
+        else{
+            resources.getString(R.string.ADMOB_NATIVE_LANGUAGE_1)
+        }
+
+        NewNativeAdClass.checkAdRequestAdmob(
+            mContext = this,
+            adId = adId!!,
+            fragmentName = "HomeFragment",
+            isMedia = false,
+            isMediaOnLeft = false,
+            adContainer = binding.nativeAdContainerAd,
+            isMediumAd = false,
+            onFailed = {
+                binding.shimmerLayout.stopShimmer()
+                binding.nativeAdContainerAd.visibility = View.GONE
+
+            },
+            onAddLoaded = {
+                binding.shimmerLayout.stopShimmer()
+                binding.shimmerLayout.visibility = View.GONE
+            }
+        )
+    }
+
+    fun setStatusBarColor(activity: Activity, color: Int) {
+        val window = activity.window
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) { // Android 15+
+            window.decorView.setOnApplyWindowInsetsListener { view, insets ->
+                val statusBarInsets = insets.getInsets(WindowInsets.Type.statusBars())
+                view.setBackgroundColor(color)
+
+                // Adjust padding to avoid overlap
+                view.setPadding(0, statusBarInsets.top, 0, 0)
+                insets
+            }
         } else {
-            adLayout.visibility = View.GONE // Hide the ad layout if no network
+            // For Android 14 and below
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+            window.statusBarColor = color
         }
     }
 
-    private fun loadShowBannerAd() {
-        adLoadCount++
-        // Log the number of times the ad has been loaded
-        Log.e("AdLoadCount", "Ad has been loaded $adLoadCount times")
 
-        AdsProvider.bannerAll.config(
-            getSharedPreferences("RemoteConfig", MODE_PRIVATE).getBoolean(
-                banner,
-                true
-            )
-        )
-        AdsProvider.bannerAll.loadAds(MyApplication.getApplication())
-        showBannerAd(AdsProvider.bannerAll, findViewById(R.id.bannerFr), keepAdsWhenLoading = true)
-        findViewById<FrameLayout>(R.id.bannerFr).visibility = View.VISIBLE
-    }
 
     private fun showRenameDialog() {
         // Create an EditText for user input

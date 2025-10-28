@@ -44,7 +44,7 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import apero.aperosg.monetization.util.showNativeAd
+
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.journeyapps.barcodescanner.BarcodeEncoder
@@ -53,7 +53,7 @@ import com.qrcodescanner.barcodereader.qrgenerator.R
 import com.qrcodescanner.barcodereader.qrgenerator.ads.CustomFirebaseEvents
 import com.qrcodescanner.barcodereader.qrgenerator.ads.NetworkCheck
 import com.qrcodescanner.barcodereader.qrgenerator.database.QRCodeDatabaseHelper
-import com.qrcodescanner.barcodereader.qrgenerator.utils.AdsProvider
+
 import com.qrcodescanner.barcodereader.qrgenerator.utils.native_result
 import java.io.File
 import java.io.FileOutputStream
@@ -61,6 +61,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.core.net.toUri
+import androidx.recyclerview.widget.GridLayoutManager
 import com.qrcodescanner.barcodereader.qrgenerator.adapters.ScanResultSocialAdapter
 import com.qrcodescanner.barcodereader.qrgenerator.databinding.FragmentShowScanCodeBinding
 import com.qrcodescanner.barcodereader.qrgenerator.models.ScanResultOption
@@ -127,7 +128,6 @@ class ShowScanCode : Fragment() {
         Log.d("ARGSDD", "initViews: $qrCode")
         binding.textViewQRCode.text = qrCode
         ivQrCode = requireView().findViewById(R.id.qrCodeImageView)
-        // Initialize database helper
         dbHelper = QRCodeDatabaseHelper(requireContext())
         if (isQrCode) {
             generateAndShowQRCode(qrCode)
@@ -140,7 +140,6 @@ class ShowScanCode : Fragment() {
         }
 
         if (isFromHistory) {
-            // binding.btnSave.visibility = View.GONE
             requireActivity().onBackPressedDispatcher.addCallback(
                 viewLifecycleOwner,
                 object : OnBackPressedCallback(true) {
@@ -155,7 +154,6 @@ class ShowScanCode : Fragment() {
                 })
 
         } else {
-            //  binding.btnSave.visibility = View.VISIBLE
             requireActivity().onBackPressedDispatcher.addCallback(
                 viewLifecycleOwner,
                 object : OnBackPressedCallback(true) {
@@ -176,18 +174,12 @@ class ShowScanCode : Fragment() {
                 })
         }
         if (isValidUrl(qrCode)) {
-
-            //binding.btnOpenWebsite.visibility = View.VISIBLE
-
-            // Check if the switch is enabled and open the website automatically
             if (sharedPreferences.getBoolean("openWebsiteAutomatically", false)) {
                 Handler(Looper.getMainLooper()).postDelayed({
                     openWebsite(qrCode)
                 }, 1000)
             }
         } else {
-            //  binding.txtQrcode.text = getString(R.string.text)
-//            binding.btnOpenWebsite.visibility = View.VISIBLE
             if (sharedPreferences.getBoolean("openWebsiteAutomatically", false)) {
                 Handler(Looper.getMainLooper()).postDelayed({
                     openWebsite(qrCode)
@@ -198,15 +190,16 @@ class ShowScanCode : Fragment() {
         //showing create code options
         val codeOptionsList = listOf(
             ScanResultOption(R.drawable.ic_saveas, getString(R.string.save_as)),
-            ScanResultOption(R.drawable.ic_amazon, getString(R.string.amazon)),
-            ScanResultOption(R.drawable.ic_ebey, getString(R.string.eBay)),
-            ScanResultOption(R.drawable.ic_wallmart, getString(R.string.walmart)),
-            ScanResultOption(R.drawable.ic_bestbuy, getString(R.string.bestBuy)),
-            ScanResultOption(R.drawable.ic_mccy, getString(R.string.Macys)),
-            ScanResultOption(R.drawable.ic_target, getString(R.string.Target)),
             ScanResultOption(R.drawable.ic_copy, getString(R.string.Copy)),
             ScanResultOption(R.drawable.ic_website, getString(R.string.Web_Search)),
             ScanResultOption(R.drawable.ic_favorite, getString(R.string.Favourite)),
+            ScanResultOption(R.drawable.ic_share_scan, getString(R.string.share)),
+            ScanResultOption(R.drawable.ic_mccy, getString(R.string.Macys)),
+            ScanResultOption(R.drawable.ic_target, getString(R.string.Target)),
+            ScanResultOption(R.drawable.ic_amazon, getString(R.string.amazon)),
+            ScanResultOption(R.drawable.ic_ebay, getString(R.string.eBay)),
+            ScanResultOption(R.drawable.ic_wallmart, getString(R.string.walmart))
+//            ScanResultOption(R.drawable.ic_bestbuy, getString(R.string.bestBuy))
         )
 
         scanOptionAdapter = ScanResultSocialAdapter(codeOptionsList) { item ->
@@ -220,6 +213,7 @@ class ShowScanCode : Fragment() {
             navigateToViewQRCode(item.optionName)
         }
 
+        binding.rvScanresults.layoutManager = GridLayoutManager(requireContext(), 5)
         binding.rvScanresults.adapter = scanOptionAdapter
 
 
@@ -352,6 +346,17 @@ class ShowScanCode : Fragment() {
                 copyTextToClipboard(qrCode)
             }
 
+            getString(R.string.share) -> {
+                CustomFirebaseEvents.logEvent(
+                    context = requireActivity(),
+                    screenName = "Scan QR barcode result screen",
+                    trigger = "User tap button Share",
+                    eventName = "scanqr_result_scr_tap_share"
+                )
+                shareText(qrCode)
+            }
+
+
             getString(R.string.Web_Search) -> {
                 CustomFirebaseEvents.logEvent(
                     context = requireActivity(),
@@ -384,21 +389,6 @@ class ShowScanCode : Fragment() {
                 val qrBitmap = getBitmapFromView(binding.qrCodeImageView)
 
                 saveImageToDownload(qrBitmap, requireContext(), binding.txtQrcode.text.toString())
-//                imageAnalysis = ImageAnalysis.Builder()
-//                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-//                    .build()
-//
-//                val barcodeScanner = BarcodeScanning.getClient()
-//
-//                imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(requireContext())) { imageProxy ->
-//                    processImageProxy(barcodeScanner, imageProxy)
-//                }
-//                if (navController != null) {
-//                    val action = CreateQRFragmentDirections.actionNavCreateToNavCalender()
-//                    findNavController().navigate(action)
-//                } else {
-//                    isNavControllerAdded()
-//                }
             }
 
             else -> {
@@ -767,7 +757,6 @@ class ShowScanCode : Fragment() {
     override fun onResume() {
         super.onResume()
         isNavControllerAdded()
-        binding.layoutAdNative.visibility = View.GONE
 
 //        val isAdEnabled = requireActivity()
 //            .getSharedPreferences("RemoteConfig", AppCompatActivity.MODE_PRIVATE)
@@ -791,7 +780,7 @@ class ShowScanCode : Fragment() {
 //                R.layout.layout_home_native_ad
 //            )
 //        } else {
-//            //   binding.layoutAdNative.visibility = View.GONE
+//            //   binding.
 //        }
 
 //        val isAdEnabled = requireActivity()
@@ -818,7 +807,7 @@ class ShowScanCode : Fragment() {
 //                R.layout.layout_home_native_ad
 //            )
 //        } else {
-//            layoutAdNative.visibility = View.GONE
+//            
 //        }
 
         val TopText: TextView = requireActivity().findViewById(R.id.mainText)
@@ -833,7 +822,7 @@ class ShowScanCode : Fragment() {
             requireActivity().onBackPressed()
         }
 
-        val download = requireActivity().findViewById<ImageView>(R.id.ivDownload)
+        val download = requireActivity().findViewById<TextView>(R.id.ivDownload)
         if (download != null) {
             download.visibility = View.GONE
         }

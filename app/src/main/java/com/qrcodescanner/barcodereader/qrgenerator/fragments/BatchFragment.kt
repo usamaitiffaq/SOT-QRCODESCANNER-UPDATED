@@ -89,8 +89,7 @@ class BatchFragment : Fragment() {
             trigger = "App display tab Batch",
             eventName = "tab_batch_scr"
         )
-
-        // Initialize views
+        requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.appBlue)
         dbHelper = QRCodeDatabaseHelper(requireContext())
         numberofQR = view.findViewById(R.id.numberofQR)
         QRText = view.findViewById(R.id.QRText)
@@ -118,6 +117,7 @@ class BatchFragment : Fragment() {
                         trigger = "User tap button Back",
                         eventName = "tab_batch_scr_tap_back"
                     )
+
                     val action = BatchFragmentDirections.actionBatchFragmentToHomefragment()
                     navController.navigate(action)
                 }
@@ -544,7 +544,7 @@ class BatchFragment : Fragment() {
             ivClose.visibility = View.INVISIBLE
         }
 
-        val download = requireActivity().findViewById<ImageView>(R.id.ivDownload)
+        val download = requireActivity().findViewById<TextView>(R.id.ivDownload)
         if (download != null) {
             download.visibility = View.GONE
         }

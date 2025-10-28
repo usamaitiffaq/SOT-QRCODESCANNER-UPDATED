@@ -3,6 +3,7 @@ package com.qrcodescanner.barcodereader.qrgenerator.activities
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import android.Manifest
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -15,6 +16,7 @@ import android.view.Surface
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.SeekBar
 import android.widget.Toast
@@ -24,7 +26,6 @@ import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
-import apero.aperosg.monetization.util.showBannerAd
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.mlkit.nl.languageid.LanguageIdentification
 import com.google.mlkit.nl.languageid.LanguageIdentificationOptions
@@ -35,10 +36,11 @@ import com.google.mlkit.vision.text.devanagari.DevanagariTextRecognizerOptions
 import com.google.mlkit.vision.text.japanese.JapaneseTextRecognizerOptions
 import com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.manual.mediation.library.sotadlib.utils.hideSystemUIUpdated
 import com.qrcodescanner.barcodereader.qrgenerator.myapplication.MyApplication
 import com.qrcodescanner.barcodereader.qrgenerator.ads.NetworkCheck
 import com.qrcodescanner.barcodereader.qrgenerator.databinding.ActivityPhotoTranslaterBinding
-import com.qrcodescanner.barcodereader.qrgenerator.utils.AdsProvider
+
 import com.qrcodescanner.barcodereader.qrgenerator.utils.banner
 import java.io.File
 import java.util.concurrent.ExecutorService
@@ -80,7 +82,8 @@ class PhotoTranslaterActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityPhotoTranslaterBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
-        supportActionBar?.hide()
+        setStatusBarColor(this@PhotoTranslaterActivity,resources.getColor(R.color.black))
+        this.hideSystemUIUpdated()
         checkNetworkAndLoadAds()
         cameraExecutor = Executors.newSingleThreadExecutor()
         // Initialize the ad reload runnable
@@ -111,7 +114,7 @@ class PhotoTranslaterActivity : AppCompatActivity() {
             val intent = Intent(this@PhotoTranslaterActivity, AllLanguagesActivity::class.java)
             startActivityForResult(intent, LANGUAGE_REQUEST_CODE)
         }
-        hideSystemUI()
+
         // Initially disable the flash button
         viewBinding.icFlashoff.isEnabled = false
         // Set up the preview
@@ -137,16 +140,35 @@ class PhotoTranslaterActivity : AppCompatActivity() {
             finish() // Optional: finish PhotoTranslateActivity if you don't want to keep it in the back stack
         }
 
-
         viewBinding.btnCapture.setOnClickListener {
             takePhoto()
         }
+
         viewBinding.icGallery.setOnClickListener {
             pickImageFromGallery()
         }
 
         setupFlashButton()
     }
+
+    fun setStatusBarColor(activity: Activity, color: Int) {
+        val window = activity.window
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) { // Android 15+
+            window.decorView.setOnApplyWindowInsetsListener { view, insets ->
+                val statusBarInsets = insets.getInsets(WindowInsets.Type.statusBars())
+                view.setBackgroundColor(color)
+
+                // Adjust padding to avoid overlap
+                view.setPadding(0, statusBarInsets.top, 0, 0)
+                insets
+            }
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+            window.statusBarColor = color
+        }
+    }
+
 
     private fun startAdReloadTimer() {
         Log.d("AdTimer", "Starting or restarting ad reload timer for 10 seconds.")
@@ -181,16 +203,10 @@ class PhotoTranslaterActivity : AppCompatActivity() {
         // Log the number of times the ad has been loaded
         Log.e("AdLoadCount", "Ad has been loaded $adLoadCount times")
 
-        AdsProvider.bannerAll.config(
-            getSharedPreferences("RemoteConfig", MODE_PRIVATE).getBoolean(
-                banner,
-                true
-            )
-        )
-        AdsProvider.bannerAll.loadAds(MyApplication.getApplication())
-        showBannerAd(AdsProvider.bannerAll, findViewById(R.id.bannerFr), keepAdsWhenLoading = true)
-        findViewById<FrameLayout>(R.id.bannerFr).visibility = View.VISIBLE
-        findViewById<ConstraintLayout>(R.id.clbanner).visibility = View.VISIBLE
+//        AdsProvider.bannerAll.loadAds(MyApplication.getApplication())
+//        showBannerAd(AdsProvider.bannerAll, findViewById(R.id.bannerFr), keepAdsWhenLoading = true)
+//        findViewById<FrameLayout>(R.id.bannerFr).visibility = View.VISIBLE
+//        findViewById<ConstraintLayout>(R.id.clbanner).visibility = View.VISIBLE
     }
 
     private fun startCamera() {

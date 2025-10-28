@@ -12,27 +12,33 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:paddingBottom="5dp"
-        android:layout_marginTop="@dimen/_2sdp"
+        android:layout_marginTop="@dimen/_10sdp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/layoutAdNative" />
+        app:layout_constraintTop_toBottomOf="@+id/nativeAdContainerAd" />
 
-    <FrameLayout
-        android:id="@+id/layoutAdNative"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/nativeAdContainerAd"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/_5sdp"
-        android:background="@drawable/rounded_bg"
-        android:padding="@dimen/_5sdp"
-        android:visibility="visible"
-       app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginHorizontal="@dimen/_3sdp"
+        android:visibility="gone"
+        app:cardBackgroundColor="@color/native_ad_background"
+        app:cardCornerRadius="@dimen/_5sdp"
+        app:cardElevation="0dp"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:layout_marginBottom="@dimen/_20sdp"
+
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/recyclerviewItems">
+        app:layout_constraintTop_toTopOf="parent">
 
-        <include
-            android:id="@+id/layoutShimmer"
-            layout="@layout/layout_loading_ads_native_self" />
-    </FrameLayout>
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/shimmerLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
+            <include layout="@layout/native_admob_media_left_side_shimmer" />
+        </com.facebook.shimmer.ShimmerFrameLayout>
+    </androidx.cardview.widget.CardView>
 </androidx.constraintlayout.widget.ConstraintLayout>

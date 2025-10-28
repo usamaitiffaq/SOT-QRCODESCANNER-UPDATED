@@ -72,8 +72,8 @@ class ShowBarcodeFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         val TopText: TextView = requireActivity().findViewById(R.id.mainText)
-        TopText.text = getString(R.string.bar_code_reader)
         TopText.visibility = View.VISIBLE
+        TopText.text = getString(R.string.bar_code_reader)
 
         val back = requireActivity().findViewById<ImageView>(R.id.ivBack)
         if (back != null) {
@@ -83,7 +83,7 @@ class ShowBarcodeFragment : Fragment() {
             requireActivity().onBackPressed()
         }
 
-        val download = requireActivity().findViewById<ImageView>(R.id.ivDownload)
+        val download = requireActivity().findViewById<TextView>(R.id.ivDownload)
         if (download != null) {
             download.visibility = View.GONE
         }

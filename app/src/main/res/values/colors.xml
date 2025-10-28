@@ -12,7 +12,8 @@
     <color name="lightgreen">#01FF57</color>
     <color name="darkblue">#0093FF</color>
     <color name="appBlue">#0188FE</color>
-    <color name="statusBar">#1692FF</color>
+    <color name="native_ad_background">#e1e1e1</color>
+    <color name="statusBar">#0188FE</color>
     <color name="newcolor">#0188FE</color>
     <color name="purple">#AD00FF</color>
     <color name="transparent">#003F3F3F</color>

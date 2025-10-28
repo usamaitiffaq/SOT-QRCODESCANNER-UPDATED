@@ -35,7 +35,6 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import apero.aperosg.monetization.util.showNativeAd
 import com.google.android.material.tabs.TabLayout
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
@@ -52,7 +51,7 @@ import com.qrcodescanner.barcodereader.qrgenerator.adapters.BackgroundRecyclerAd
 import com.qrcodescanner.barcodereader.qrgenerator.adapters.ColorRecyclerAdapter
 import com.qrcodescanner.barcodereader.qrgenerator.ads.NetworkCheck
 import com.qrcodescanner.barcodereader.qrgenerator.database.QRCodeDatabaseHelper
-import com.qrcodescanner.barcodereader.qrgenerator.utils.AdsProvider
+
 import com.qrcodescanner.barcodereader.qrgenerator.utils.ColorItem
 import com.qrcodescanner.barcodereader.qrgenerator.utils.GradientItem
 import com.qrcodescanner.barcodereader.qrgenerator.utils.ImageItem
@@ -75,7 +74,7 @@ class CreateEmailQRFragment : Fragment(), ColorRecyclerAdapter.OnItemClickListen
     private lateinit var qrCodeBitmap: Bitmap
     private lateinit var qrCodeImageView: ImageView
     private lateinit var save: AppCompatButton
-    private lateinit var layoutAdNative: FrameLayout
+    
     private lateinit var colorRecyclerAdapter: ColorRecyclerAdapter
     private lateinit var backgroundRecyclerAdapter: BackgroundRecyclerAdapter
     private lateinit var bacgroundgradientRecyclerAdapter: BackgroundGradientColorAdapter
@@ -157,7 +156,7 @@ class CreateEmailQRFragment : Fragment(), ColorRecyclerAdapter.OnItemClickListen
         val framecolor6: ImageView = view.findViewById(R.id.framecolor6)
         val framecolor7: ImageView = view.findViewById(R.id.framecolor7)
 
-        layoutAdNative = requireActivity().findViewById(R.id.layoutAdNative)
+     
 
 
 
@@ -1753,24 +1752,24 @@ class CreateEmailQRFragment : Fragment(), ColorRecyclerAdapter.OnItemClickListen
 
         Log.e("AdStatus", "isAdEnabled: " + isAdEnabled)
 
-        if (NetworkCheck.isNetworkAvailable(requireContext()) && isAdEnabled) {
-            AdsProvider.nativeResult.config(
-                requireActivity().getSharedPreferences(
-                    "RemoteConfig",
-                    AppCompatActivity.MODE_PRIVATE
-                ).getBoolean(
-                    native_result, true
-                )
-            )
-            AdsProvider.nativeResult.loadAds(MyApplication.getApplication())
-            showNativeAd(
-                AdsProvider.nativeResult,
-                requireActivity().findViewById(R.id.layoutAdNative),
-                R.layout.layout_home_native_ad
-            )
-        } else {
-            layoutAdNative.visibility = View.GONE
-        }
+//        if (NetworkCheck.isNetworkAvailable(requireContext()) && isAdEnabled) {
+//            AdsProvider.nativeResult.config(
+//                requireActivity().getSharedPreferences(
+//                    "RemoteConfig",
+//                    AppCompatActivity.MODE_PRIVATE
+//                ).getBoolean(
+//                    native_result, true
+//                )
+//            )
+//            AdsProvider.nativeResult.loadAds(MyApplication.getApplication())
+//            showNativeAd(
+//                AdsProvider.nativeResult,
+//                requireActivity().findViewById(R.id.layoutAdNative),
+//                R.layout.layout_home_native_ad
+//            )
+//        } else {
+//            
+//        }
 
 
         val topText: TextView = requireActivity().findViewById(R.id.mainText)
@@ -1790,7 +1789,7 @@ class CreateEmailQRFragment : Fragment(), ColorRecyclerAdapter.OnItemClickListen
         val setting = requireActivity().findViewById<ImageView>(R.id.ivSetting)
         setting?.visibility = View.INVISIBLE
 
-        val download = requireActivity().findViewById<ImageView>(R.id.ivDownload)
+        val download = requireActivity().findViewById<TextView>(R.id.ivDownload)
         if (download != null) {
             download.visibility = View.GONE
         }

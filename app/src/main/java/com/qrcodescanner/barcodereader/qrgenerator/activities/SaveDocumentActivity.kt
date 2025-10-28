@@ -1,6 +1,8 @@
 package com.qrcodescanner.barcodereader.qrgenerator.activities
 
+import android.app.Activity
 import android.app.ProgressDialog
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -15,21 +17,29 @@ import android.util.Log
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
-import apero.aperosg.monetization.util.showBannerAd
 import com.itextpdf.io.image.ImageDataFactory
 import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfWriter
 import com.itextpdf.layout.element.Image
+import com.manual.mediation.library.sotadlib.utils.hideSystemUIUpdated
+import com.qrcodescanner.barcodereader.qrgenerator.BuildConfig
 import com.qrcodescanner.barcodereader.qrgenerator.myapplication.MyApplication
 import com.qrcodescanner.barcodereader.qrgenerator.R
 import com.qrcodescanner.barcodereader.qrgenerator.ads.NetworkCheck
-import com.qrcodescanner.barcodereader.qrgenerator.utils.AdsProvider
+import com.qrcodescanner.barcodereader.qrgenerator.ads.NewNativeAdClass
+import com.qrcodescanner.barcodereader.qrgenerator.databinding.ActivitySaveDocumentBinding
+import com.qrcodescanner.barcodereader.qrgenerator.databinding.ActivitySaveDocumentNewBinding
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_NATIVE_INSIDE
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.NATIVE_CREATE_DOCUMENT
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.NATIVE_SAVE_DOCUMENT
+
 import com.qrcodescanner.barcodereader.qrgenerator.utils.banner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -44,14 +54,25 @@ import java.io.FileOutputStream
 class SaveDocumentActivity : AppCompatActivity() {
     private var adLoadCount=0
     private lateinit var progressDialog: ProgressDialog
+    private lateinit var binding: ActivitySaveDocumentNewBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge() // Assuming you have this method defined
-        setContentView(R.layout.activity_save_document_new)
-        hideSystemUI()
-        supportActionBar?.hide()
-        if (NetworkCheck.isNetworkAvailable(this@SaveDocumentActivity)) {
-            loadShowBannerAd()
+        binding= ActivitySaveDocumentNewBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setStatusBarColor(this@SaveDocumentActivity,resources.getColor(R.color.white))
+        this.hideSystemUIUpdated()
+
+        if (NetworkCheck.isNetworkAvailable(this) &&
+            getSharedPreferences("RemoteConfig", Context.MODE_PRIVATE)?.getString(
+                NATIVE_SAVE_DOCUMENT, "ON"
+            ).equals("ON", true)
+        ) {
+            binding.nativeAdContainerAd.visibility = View.VISIBLE
+            loadAdmobNativeAd()
+        } else {
+            binding.nativeAdContainerAd.visibility = View.GONE
+            binding.shimmerLayout.stopShimmer()
         }
         // Get the buttons
         val shareButton: Button = findViewById(R.id.shareButton)
@@ -88,40 +109,72 @@ class SaveDocumentActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadShowBannerAd() {
-        adLoadCount++
-        // Log the number of times the ad has been loaded
-        Log.e("AdLoadCount", "Ad has been loaded $adLoadCount times")
+    fun setStatusBarColor(activity: Activity, color: Int, darkIcons: Boolean = true) {
+        val window = activity.window
 
-        AdsProvider.bannerAll.config(
-            getSharedPreferences("RemoteConfig", MODE_PRIVATE).getBoolean(
-                banner,
-                true
-            )
-        )
-        AdsProvider.bannerAll.loadAds(MyApplication.getApplication())
-        showBannerAd(AdsProvider.bannerAll, findViewById(R.id.bannerFr), keepAdsWhenLoading = true)
-        findViewById<FrameLayout>(R.id.bannerFr).visibility=View.VISIBLE
-    }
-    private fun hideSystemUI() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // For Android 11 and above
-            window.setDecorFitsSystemWindows(false)
-            val controller = window.insetsController
-            controller?.hide(WindowInsets.Type.systemBars())
-            controller?.systemBarsBehavior =
-                WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        } else {
-            // For Android 10 and below
-            window.decorView.systemUiVisibility = (
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            or View.SYSTEM_UI_FLAG_FULLSCREEN
-                            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) { // Android 15+
+            window.decorView.setOnApplyWindowInsetsListener { view, insets ->
+                val statusBarInsets = insets.getInsets(WindowInsets.Type.statusBars())
+                view.setBackgroundColor(color)
+                view.setPadding(0, statusBarInsets.top, 0, 0)
+
+                // ✅ Set dark / light icons (Android 15+)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    window.insetsController?.setSystemBarsAppearance(
+                        if (darkIcons) WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS else 0,
+                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
                     )
+                }
+
+                insets
+            }
+        } else {
+            // For Android 14 and below (your original block kept)
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+            window.statusBarColor = color
+
+            // ✅ Set dark / light icons (Android 6+)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val decor = window.decorView
+                decor.systemUiVisibility = if (darkIcons) {
+                    View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                } else {
+                    0
+                }
+            }
         }
+    }
+
+
+
+    private fun loadAdmobNativeAd() {
+        val pref = getSharedPreferences("RemoteConfig", MODE_PRIVATE)
+        val adId  =if (!BuildConfig.DEBUG){
+            pref.getString(AD_ID_NATIVE_INSIDE,"ca-app-pub-3747520410546258/1477166335")
+        }
+        else{
+            resources.getString(R.string.ADMOB_NATIVE_LANGUAGE_1)
+        }
+
+        NewNativeAdClass.checkAdRequestAdmob(
+            mContext = this,
+            adId = adId!!,
+            fragmentName = "HomeFragment",
+            isMedia = true,
+            isMediaOnLeft = true,
+            adContainer = binding.nativeAdContainerAd,
+            isMediumAd = true,
+            onFailed = {
+                binding.shimmerLayout.stopShimmer()
+                binding.nativeAdContainerAd.visibility = View.GONE
+
+            },
+            onAddLoaded = {
+                binding.shimmerLayout.stopShimmer()
+                binding.shimmerLayout.visibility = View.GONE
+            }
+        )
     }
 
     private fun showShareOptionsDialog(documentName: String, imageUris: List<Uri>) {

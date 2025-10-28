@@ -97,7 +97,7 @@ class WifiFragment : Fragment() {
             back.visibility = View.VISIBLE
         }
 
-        val download = requireActivity().findViewById<ImageView>(R.id.ivDownload)
+        val download = requireActivity().findViewById<TextView>(R.id.ivDownload)
         if (download != null) {
             download.visibility = View.GONE
         }

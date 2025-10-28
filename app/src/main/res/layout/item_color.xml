@@ -7,7 +7,7 @@
     android:padding="@dimen/_2sdp"
     android:background="@drawable/color_item_selector">
 
-    <com.mbridge.msdk.videocommon.view.RoundImageView
+    <com.makeramen.roundedimageview.RoundedImageView
         android:id="@+id/colorView"
         android:layout_width="@dimen/_37sdp"
         android:layout_height="@dimen/_37sdp"

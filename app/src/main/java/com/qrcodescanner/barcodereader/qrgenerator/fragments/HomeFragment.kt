@@ -14,6 +14,8 @@ import android.media.ToneGenerator
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.provider.MediaStore
@@ -42,7 +44,6 @@ import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
-import apero.aperosg.monetization.util.showNativeAd
 import com.google.common.util.concurrent.ListenableFuture
 
 import com.google.mlkit.vision.barcode.BarcodeScanner
@@ -67,9 +68,7 @@ import com.qrcodescanner.barcodereader.qrgenerator.activities.PhotoTranslaterAct
 import com.qrcodescanner.barcodereader.qrgenerator.ads.CustomFirebaseEvents
 import com.qrcodescanner.barcodereader.qrgenerator.ads.NetworkCheck
 import com.qrcodescanner.barcodereader.qrgenerator.database.QRCodeDatabaseHelper
-import com.qrcodescanner.barcodereader.qrgenerator.utils.AdsProvider
 import com.qrcodescanner.barcodereader.qrgenerator.utils.PermissionUtils
-import com.qrcodescanner.barcodereader.qrgenerator.utils.native_home
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -83,6 +82,8 @@ import java.util.Locale
 import androidx.core.graphics.drawable.toDrawable
 import com.google.firebase.Firebase
 import com.google.firebase.storage.storage
+import com.qrcodescanner.barcodereader.qrgenerator.ads.InterstitialClassAdMob
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.INTERSTITIAL_ENTER_CREATE_QR
 import com.qrcodescanner.barcodereader.qrgenerator.utils.hideSystemBars
 import com.qrcodescanner.barcodereader.qrgenerator.utils.showSystemBars
 
@@ -115,8 +116,6 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         initViews()
         clickEvents()
-        requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.black)
-
     }
 
     private fun initViews() {
@@ -203,7 +202,6 @@ class HomeFragment : Fragment() {
         }
 
         binding.ivScanCode.setOnClickListener {
-            (activity as? HomeActivity)?.checkNetworkAndLoadAds()  // Hide the bottom bar when transition ends
             CustomFirebaseEvents.logEvent(
                 context = requireActivity(),
                 screenName = "Home Screen",
@@ -243,7 +241,7 @@ class HomeFragment : Fragment() {
         }
 
         binding.ivHistory.setOnClickListener {
-            (activity as? HomeActivity)?.checkNetworkAndLoadAds()  // Hide the bottom bar when transition ends
+//            (activity as? HomeActivity)?.checkNetworkAndLoadAds()  // Hide the bottom bar when transition ends
             CustomFirebaseEvents.logEvent(
                 context = requireActivity(),
                 screenName = "Home screen",
@@ -255,7 +253,6 @@ class HomeFragment : Fragment() {
         }
 
         binding.clScanQR.setOnClickListener {
-            (activity as? HomeActivity)?.checkNetworkAndLoadAds()
             val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 arrayOf(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.CAMERA)
             } else {
@@ -272,15 +269,14 @@ class HomeFragment : Fragment() {
                         trigger = "User tap button Scan QR",
                         eventName = "home_scr_tap_scanqr"
                     )
-                    AdsProvider.interScan.showAds(
-                        activity = requireActivity(), onNextAction = {
+
                             navigateToScanQRCode()
-                        })
+
                 })
         }
 
         binding.clCreateQr.setOnClickListener {
-            (activity as? HomeActivity)?.checkNetworkAndLoadAds()  // Hide the bottom bar when transition ends
+//            (activity as? HomeActivity)?.checkNetworkAndLoadAds()  // Hide the bottom bar when transition ends
             CustomFirebaseEvents.logEvent(
                 context = requireActivity(),
                 screenName = "Home screen",
@@ -288,14 +284,29 @@ class HomeFragment : Fragment() {
                 eventName = "home_scr_tap_createqr"
             )
 
-            AdsProvider.interCreate.showAds(
-                activity = requireActivity(), onNextAction = {
-                    navigateToCreateQrCode()
-                })
+            if (com.manual.mediation.library.sotadlib.utils.NetworkCheck.isNetworkAvailable(context)
+                && requireActivity().getSharedPreferences("RemoteConfig", Context.MODE_PRIVATE)
+                    .getString(INTERSTITIAL_ENTER_CREATE_QR, "ON").equals("ON", ignoreCase = true)
+            ) {
+                InterstitialClassAdMob.showIfAvailableOrLoadAdMobInterstitial(
+                    context = context,
+                    "Translation",
+                    onAdClosedCallBackAdmob = {
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            navigateToCreateQrCode()
+                        }, 300)
+                    },
+                    onAdShowedCallBackAdmob = {
+                    }
+                )
+            } else {
+                navigateToCreateQrCode()
+            }
+
         }
 
         binding.clBarCode.setOnClickListener {
-            (activity as? HomeActivity)?.checkNetworkAndLoadAds()  // Hide the bottom bar when transition ends
+//            (activity as? HomeActivity)?.checkNetworkAndLoadAds()  // Hide the bottom bar when transition ends
             CustomFirebaseEvents.logEvent(
                 context = requireActivity(),
                 screenName = "Home screen",
@@ -321,10 +332,9 @@ class HomeFragment : Fragment() {
                         trigger = "Tap on Translate image",
                         eventName = "home_scr_tap_translate"
                     )
-                    AdsProvider.interScan.showAds(
-                        activity = requireActivity(), onNextAction = {
+
                             pickImageFromGallery()
-                        })
+
                 })
         }
 
@@ -339,17 +349,15 @@ class HomeFragment : Fragment() {
                 activity = requireActivity(),
                 permissionsList = permissions.toList(),
                 onAllGranted = {
-                    (activity as? HomeActivity)?.checkNetworkAndLoadAds()
+//                    (activity as? HomeActivity)?.checkNetworkAndLoadAds()
                     CustomFirebaseEvents.logEvent(
                         context = requireActivity(),
                         screenName = "Home screen",
                         trigger = "Tap on Batch Scan",
                         eventName = "home_scr_tap_batchscan"
                     )
-                    AdsProvider.interCreate.showAds(
-                        activity = requireActivity(), onNextAction = {
                             navigateToBatchScan()
-                        })
+
                 })
         }
 
@@ -379,17 +387,31 @@ class HomeFragment : Fragment() {
         }
 
         binding.clTemplate.setOnClickListener {
-            (activity as? HomeActivity)?.checkNetworkAndLoadAds()
+//            (activity as? HomeActivity)?.checkNetworkAndLoadAds()
             CustomFirebaseEvents.logEvent(
                 context = requireActivity(),
                 screenName = "Home screen",
                 trigger = "Tap on a template QR",
                 eventName = "home_scr_tap_template"
             )
-            AdsProvider.interCreate.showAds(
-                activity = requireActivity(), onNextAction = {
-                    navigateToTemplateQrCode()
-                })
+            if (com.manual.mediation.library.sotadlib.utils.NetworkCheck.isNetworkAvailable(context)
+                && requireActivity().getSharedPreferences("RemoteConfig", Context.MODE_PRIVATE)
+                    .getString(INTERSTITIAL_ENTER_CREATE_QR, "ON").equals("ON", ignoreCase = true)
+            ) {
+                InterstitialClassAdMob.showIfAvailableOrLoadAdMobInterstitial(
+                    context = context,
+                    "Translation",
+                    onAdClosedCallBackAdmob = {
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            navigateToCreateQrCode()
+                        }, 300)
+                    },
+                    onAdShowedCallBackAdmob = {
+                    }
+                )
+            } else {
+                navigateToCreateQrCode()
+            }
         }
 
         requireActivity().onBackPressedDispatcher.addCallback(
@@ -400,29 +422,36 @@ class HomeFragment : Fragment() {
             })
     }
 
-    private fun navigateToTemplateQrCode() {
-        if (navController != null) {
-            val action = HomeFragmentDirections.actionNavHomeToNavCreate()
-            navController?.navigate(action)
-        } else {
-            isNavControllerAdded()
-        }
-    }
-
     private fun setupCamera() {
         Log.d("ScanCode", "setupCamera called")
-        cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
+
+        // If fragment is not attached anymore, stop immediately
+        if (!isAdded) return
+
+        val context = context ?: return
+
+        cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+
         cameraProviderFuture.addListener({
+            // Check again inside async callback
+            if (!isAdded) return@addListener
+
             val cameraProvider = cameraProviderFuture.get()
             Log.d("ScanCode", "cameraProviderFuture initialization completed")
+
             preview = Preview.Builder().build()
 
             imageAnalysis = ImageAnalysis.Builder()
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build()
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .build()
 
             val barcodeScanner = BarcodeScanning.getClient()
 
-            imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(requireContext())) { imageProxy ->
+            imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(context)) { imageProxy ->
+                if (!isAdded) {
+                    imageProxy.close()
+                    return@setAnalyzer
+                }
                 processImageProxy(barcodeScanner, imageProxy)
             }
 
@@ -434,17 +463,57 @@ class HomeFragment : Fragment() {
 
             try {
                 cameraProvider.unbindAll()
-                camera =
-                    cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis)
-                preview.setSurfaceProvider(binding.cameraPreview.surfaceProvider)
+                camera = cameraProvider.bindToLifecycle(
+                    viewLifecycleOwner, cameraSelector, preview, imageAnalysis
+                )
 
-                // Initialize zoom controls after the camera is set up
+                preview.setSurfaceProvider(binding.cameraPreview.surfaceProvider)
 
             } catch (exc: Exception) {
                 Log.e("ScanCode", "Use case binding failed", exc)
             }
-        }, ContextCompat.getMainExecutor(requireContext()))
+
+        }, ContextCompat.getMainExecutor(context))
     }
+
+
+
+//    private fun setupCamera() {
+//        Log.d("ScanCode", "setupCamera called")
+//        cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
+//        cameraProviderFuture.addListener({
+//            val cameraProvider = cameraProviderFuture.get()
+//            Log.d("ScanCode", "cameraProviderFuture initialization completed")
+//            preview = Preview.Builder().build()
+//
+//            imageAnalysis = ImageAnalysis.Builder()
+//                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build()
+//
+//            val barcodeScanner = BarcodeScanning.getClient()
+//
+//            imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(requireContext())) { imageProxy ->
+//                processImageProxy(barcodeScanner, imageProxy)
+//            }
+//
+//            val cameraSelector = if (isUsingBackCamera) {
+//                CameraSelector.DEFAULT_BACK_CAMERA
+//            } else {
+//                CameraSelector.DEFAULT_FRONT_CAMERA
+//            }
+//
+//            try {
+//                cameraProvider.unbindAll()
+//                camera =
+//                    cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis)
+//                preview.setSurfaceProvider(binding.cameraPreview.surfaceProvider)
+//
+//                // Initialize zoom controls after the camera is set up
+//
+//            } catch (exc: Exception) {
+//                Log.e("ScanCode", "Use case binding failed", exc)
+//            }
+//        }, ContextCompat.getMainExecutor(requireContext()))
+//    }
 
     @SuppressLint("UnsafeOptInUsageError")
     private fun processImageProxy(barcodeScanner: BarcodeScanner, imageProxy: ImageProxy) {
@@ -494,16 +563,8 @@ class HomeFragment : Fragment() {
         CoroutineScope(Dispatchers.IO).launch {
             saveQRCodeToDatabase(qrCode, icon)
             withContext(Dispatchers.Main) {
-                if (!AdsProvider.interScan.isAdReady()) {
-                    navigateToNextFragment(qrCode,isQRCode)
-                    isScanInProgress = false
-                } else {
-                    AdsProvider.interScan.showAds(
-                        activity = requireActivity(), onNextAction = {
-                            navigateToNextFragment(qrCode, isQRCode)
-                            isScanInProgress = false
-                        })
-                }
+                navigateToNextFragment(qrCode,isQRCode)
+                isScanInProgress = false
             }
         }
     }
@@ -572,6 +633,7 @@ class HomeFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         requireActivity().showSystemBars()
+
         cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
         releaseCamera()
     }
@@ -703,12 +765,14 @@ class HomeFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.black)
         if (ContextCompat.checkSelfPermission(
                 requireContext(), Manifest.permission.CAMERA
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             setupCamera()
         }
+        (activity as? HomeActivity)?.showBannerAd()
 
         (activity as? HomeActivity)?.showBottomBar()  // Show bottom bar again when returning to HomeFragment
         (activity as? HomeActivity)?.viewBottomBarAlpha() //again show in orignal form
@@ -719,29 +783,6 @@ class HomeFragment : Fragment() {
             eventName = "home_scr"
         )
 
-        binding.layoutAdNative.visibility = View.GONE
-
-//        val isAdEnabled =
-//            requireActivity().getSharedPreferences("RemoteConfig", AppCompatActivity.MODE_PRIVATE)
-//                .getBoolean("native_home", true)
-//
-//        Log.e("AdStatus", "isAdEnabled: " + isAdEnabled)
-
-//        if (NetworkCheck.isNetworkAvailable(requireContext()) && isAdEnabled) {
-//            AdsProvider.nativeHome.config(
-//                requireActivity().getSharedPreferences(
-//                    "RemoteConfig", AppCompatActivity.MODE_PRIVATE
-//                ).getBoolean(native_home, true)
-//            )
-//            AdsProvider.nativeHome.loadAds(MyApplication.getApplication())
-//            showNativeAd(
-//                AdsProvider.nativeHome, binding.layoutAdNative, R.layout.layout_home_native_ad
-//            )
-//        } else {
-//            binding.layoutAdNative.visibility = View.GONE
-//        }
-
-
         val TopText: TextView = requireActivity().findViewById(R.id.mainText)
         TopText.visibility = View.GONE
         TopText.text = getString(R.string.qr_code_scanner)
@@ -749,7 +790,7 @@ class HomeFragment : Fragment() {
         val back = requireActivity().findViewById<ImageView>(R.id.ivBack)
         back?.visibility = View.GONE
 
-        val download = requireActivity().findViewById<ImageView>(R.id.ivDownload)
+        val download = requireActivity().findViewById<TextView>(R.id.ivDownload)
         if (download != null) {
             download.visibility = View.GONE
         }
@@ -778,14 +819,36 @@ class HomeFragment : Fragment() {
         }
     }
 
-
     private fun navigateToScanQRCode() {
+        try {
+            if (navController != null) {
+                val action = HomeFragmentDirections.actionNavHomeToNavScanQRCode()
+                navController?.navigate(action)
+            } else {
+                Log.w("Navigation", "NavController is null, attempting to reinitialize")
+                isNavControllerAdded()
+                // Optionally retry navigation after reinitialization
+                Handler(Looper.getMainLooper()).postDelayed({
+                    retryNavigation()
+                }, 100)
+            }
+        } catch (e: Exception) {
+            Log.e("Navigation", "Failed to navigate to Scan QR Code: ${e.message}")
+            // Handle navigation error gracefully
+            showNavigationError()
+        }
+    }
+
+    private fun retryNavigation() {
         if (navController != null) {
             val action = HomeFragmentDirections.actionNavHomeToNavScanQRCode()
             navController?.navigate(action)
-        } else {
-            isNavControllerAdded()
         }
+    }
+
+    private fun showNavigationError() {
+        // Show a toast or snackbar to the user
+        Toast.makeText(requireContext(), "Navigation unavailable, please try again", Toast.LENGTH_SHORT).show()
     }
 
     private fun navigateToBatchScan() {

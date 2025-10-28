@@ -109,6 +109,7 @@
         android:layout_marginTop="@dimen/_4sdp"
         android:layout_marginBottom="@dimen/_2sdp"
         android:padding="2dp"
+        android:visibility="gone"
         android:background="@drawable/border_background"
         app:layout_constraintBottom_toBottomOf="parent">
 

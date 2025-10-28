@@ -12,10 +12,11 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
-import apero.aperosg.firstopen.ui.activity.LanguageSettingsActivity
+import com.manual.mediation.library.sotadlib.activities.LanguageScreenOne
 import com.qrcodescanner.barcodereader.qrgenerator.R
 import com.qrcodescanner.barcodereader.qrgenerator.databinding.FragmentSettingBinding
 import com.qrcodescanner.barcodereader.qrgenerator.models.ShareHelper
@@ -39,8 +40,10 @@ class SettingFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         navController = findNavController()
-
-        sharedPreferences = requireActivity().getSharedPreferences("ScanSettings", Context.MODE_PRIVATE)
+        requireActivity().window.statusBarColor =
+            ContextCompat.getColor(requireContext(), R.color.appBlue)
+        sharedPreferences =
+            requireActivity().getSharedPreferences("ScanSettings", Context.MODE_PRIVATE)
         // Set default values if not already set
         if (!sharedPreferences.contains("vibrate")) {
             sharedPreferences.edit().putBoolean("vibrate", true).apply()
@@ -53,6 +56,18 @@ class SettingFragment : Fragment() {
             val action = SettingFragmentDirections.actionNavSettingToNavHome()
             navController.navigate(action)
         }
+
+        binding.llUpdate.setOnClickListener {
+            openPlayStore("com.qrcodescanner.barcodereader.qrgenerator")
+        }
+
+
+        binding.llLaqnguages.setOnClickListener {
+            val intent = Intent(requireContext(), LanguageScreenOne::class.java)
+            intent.putExtra("comeFrom", "AppSettings")
+            startActivity(intent)
+        }
+
 
         binding.switch01.isChecked = sharedPreferences.getBoolean("vibrate", true)
         binding.switch1.isChecked = sharedPreferences.getBoolean("sound", true)
@@ -117,11 +132,7 @@ class SettingFragment : Fragment() {
             ShareHelper.sendFeedback(requireContext())
         }
 
-        binding.llLaqnguages.setOnClickListener {
-            startActivity(Intent(requireActivity(),LanguageSettingsActivity::class.java))
-//            val action=SettingFragmentDirections.actionNavSettingToNavLanguage()
-//            navController.navigate(action)
-        }
+
 
         binding.llPrivacyPolicy.setOnClickListener {
             val action = SettingFragmentDirections.actionNavSettingToWebview()
@@ -143,6 +154,22 @@ class SettingFragment : Fragment() {
         }
     }
 
+    private fun openPlayStore(packageName: String) {
+        try {
+            // Open Play Store app
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName")))
+        } catch (e: ActivityNotFoundException) {
+            // If Play Store is not installed → open in browser
+            startActivity(
+                Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://play.google.com/store/apps/details?id=$packageName")
+                )
+            )
+        }
+    }
+
+
     override fun onResume() {
         super.onResume()
 
@@ -160,7 +187,7 @@ class SettingFragment : Fragment() {
         back?.setOnClickListener {
             requireActivity().onBackPressed()
         }
-        val download = requireActivity().findViewById<ImageView>(R.id.ivDownload)
+        val download = requireActivity().findViewById<TextView>(R.id.ivDownload)
         if (download != null) {
             download.visibility = View.GONE
         }

@@ -377,6 +377,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="108dp"
                         android:layout_marginTop="10dp"
+                        android:visibility="gone"
                         app:layout_constraintEnd_toEndOf="@+id/clTranslateImage"
                         app:layout_constraintStart_toStartOf="@+id/clTranslateImage"
                         app:layout_constraintTop_toBottomOf="@+id/layoutAdNative">
@@ -456,12 +457,11 @@
 
                         <ImageView
                             android:id="@+id/ivTemp1"
-                            android:layout_width="@dimen/_60sdp"
-                            android:layout_height="@dimen/_60sdp"
+                            android:layout_width="@dimen/_70sdp"
+                            android:layout_height="@dimen/_70sdp"
                             android:layout_marginStart="@dimen/_5sdp"
                             android:layout_marginBottom="@dimen/_5sdp"
                             android:elevation="@dimen/_10sdp"
-                            android:padding="@dimen/_5sdp"
                             android:src="@drawable/work6"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toStartOf="@+id/ivTemp2"
@@ -476,7 +476,6 @@
                             android:layout_height="@dimen/_60sdp"
                             android:layout_marginBottom="@dimen/_5sdp"
                             android:elevation="@dimen/_10sdp"
-                            android:padding="@dimen/_5sdp"
                             android:src="@drawable/blockchain7"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toStartOf="@+id/ivTemp3"
@@ -489,7 +488,6 @@
                             android:layout_width="@dimen/_60sdp"
                             android:layout_height="@dimen/_60sdp"
                             android:elevation="@dimen/_10sdp"
-                            android:padding="@dimen/_5sdp"
                             android:src="@drawable/wifi18"
                             app:layout_constraintBottom_toBottomOf="@+id/ivTemp2"
                             app:layout_constraintEnd_toStartOf="@+id/ivTemp4"
@@ -511,7 +509,6 @@
                             android:layout_width="@dimen/_60sdp"
                             android:layout_height="@dimen/_60sdp"
                             android:elevation="@dimen/_10sdp"
-                            android:padding="@dimen/_5sdp"
                             android:src="@drawable/event6"
                             app:layout_constraintBottom_toBottomOf="@+id/ivTemp3"
                             app:layout_constraintEnd_toEndOf="parent"
@@ -519,7 +516,6 @@
                             app:layout_constraintStart_toEndOf="@+id/ivTemp3"
                             app:layout_constraintTop_toTopOf="@+id/ivTemp3"
                             app:layout_constraintVertical_bias="0.5" />
-
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 

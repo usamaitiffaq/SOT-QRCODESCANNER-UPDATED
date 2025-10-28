@@ -67,31 +67,22 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_search);
-
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
-        // Check if location permission is granted
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 100);
         } else {
             checkLocationServicesEnabled();
         }
-
-        // Initializing all our variables for views
         img = findViewById(R.id.image);
         snap = findViewById(R.id.snapbtn);
         searchResultsBtn = findViewById(R.id.idBtnSearchResuts);
         resultRV = findViewById(R.id.idRVSearchResults);
 
-        // Initializing our array list
         dataModalArrayList = new ArrayList<>();
 
-        // Initializing our adapter class
         searchResultsRVAdapter = new SearchResultsRVAdapter(dataModalArrayList, MainActivity.this);
 
-        // Adding onClickListener for snap button
         snap.setOnClickListener(v -> {
-            // Calling a method to capture an image
             dispatchTakePictureIntent();
         });
 
@@ -101,7 +92,6 @@ public class MainActivity extends AppCompatActivity {
 //            getResults();
         });
 
-        // Initialize takeImageLauncher
         takeImageLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 o -> {
@@ -123,7 +113,6 @@ public class MainActivity extends AppCompatActivity {
         boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
         if (!isGPSEnabled && !isNetworkEnabled) {
-            // Prompt user to enable location services
             new AlertDialog.Builder(this)
                     .setTitle("Enable Location Services")
                     .setMessage("Location services are required for this feature. Please enable them in settings.")
@@ -134,7 +123,6 @@ public class MainActivity extends AppCompatActivity {
                     .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                     .show();
         } else {
-            // Proceed to get location
             getCurrentLocation();
         }
     }

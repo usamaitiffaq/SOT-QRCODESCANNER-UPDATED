@@ -2,6 +2,7 @@ package com.qrcodescanner.barcodereader.qrgenerator.activities
 
 import android.app.Activity
 import android.app.Dialog
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -14,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
 import android.view.View
@@ -21,6 +23,7 @@ import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.ProgressBar
@@ -28,19 +31,26 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.FileProvider
-import apero.aperosg.monetization.util.showBannerAd
+import com.google.ads.mediation.admob.AdMobAdapter
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.LoadAdError
 import com.google.mlkit.vision.text.Text
+import com.manual.mediation.library.sotadlib.utils.hideSystemUIUpdated
 import com.qrcodescanner.barcodereader.qrgenerator.BuildConfig
-import com.qrcodescanner.barcodereader.qrgenerator.myapplication.MyApplication
 import com.qrcodescanner.barcodereader.qrgenerator.utils.BitmapAnnotator
 import com.qrcodescanner.barcodereader.qrgenerator.R
-import com.qrcodescanner.barcodereader.qrgenerator.ads.NetworkCheck
-import com.qrcodescanner.barcodereader.qrgenerator.utils.AdsProvider
+import com.qrcodescanner.barcodereader.qrgenerator.ads.NativeMaster
+import com.qrcodescanner.barcodereader.qrgenerator.databinding.ActivityPreviewBinding
 import com.qrcodescanner.barcodereader.qrgenerator.utils.LanguageRecognizer
 import com.qrcodescanner.barcodereader.qrgenerator.utils.OCR
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_BANNER_HOME
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.BANNER_BOTTOM_TRANSLATION
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.BANNER_HOME
 import com.qrcodescanner.barcodereader.qrgenerator.utils.TranslatorHelper
 import com.qrcodescanner.barcodereader.qrgenerator.utils.ZoomableImageView
-import com.qrcodescanner.barcodereader.qrgenerator.utils.banner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -49,6 +59,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.collections.set
 
 class PreviewActivity : AppCompatActivity() {
     companion object {
@@ -56,7 +67,7 @@ class PreviewActivity : AppCompatActivity() {
         const val EXTRA_IMAGE_PATH = "extra_image_path"
         const val CROP_IMAGE_REQUEST_CODE = 1001 // Define your request code here
     }
-
+    private lateinit var binding: ActivityPreviewBinding
     private lateinit var previewImageView: ZoomableImageView
     private lateinit var btnBack: ImageView
     private lateinit var btnTranslate: ImageView
@@ -95,18 +106,18 @@ class PreviewActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_preview)
-        supportActionBar?.hide()
+        binding=ActivityPreviewBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        checkNetworkAndLoadAds()
+        setStatusBarColor(this@PreviewActivity,resources.getColor(R.color.statusBar))
+        this.hideSystemUIUpdated()
         fromPhotoActivity = intent.getBooleanExtra("fromPhotoTranslaterActivity", false)
 
-        if (NetworkCheck.isNetworkAvailable(this@PreviewActivity)) {
-            loadShowBannerAd()
-        }
         val sharedPreferences = getSharedPreferences("LanguagePreferences", MODE_PRIVATE)
         languageCode = sharedPreferences.getString("LANGUAGE_NAME", "English").toString()
-        targetlanguagecode = sharedPreferences.getString("LANGUAGE_CODE", "en")
+        targetlanguagecode = sharedPreferences.getString("LANGUAGE_CODE", "en") ?: "en"
+
         Toast.makeText(this, targetlanguagecode, Toast.LENGTH_SHORT).show()
-        hideSystemUI()
         previewImageView = findViewById(R.id.previewImageView)
         // Optionally, you can set max zoom scale (if needed)
         previewImageView.setMaxZoom(4.0f) // Maximum zoom level
@@ -141,7 +152,12 @@ class PreviewActivity : AppCompatActivity() {
         }
 
         if (imagePath != null) {
-            bitmap = readImageFile(imagePath)!!
+            bitmap = readImageFile(imagePath) ?: run {
+                showToast("Failed to load image")
+                finish()
+                return
+            }
+
             displayBitmap(bitmap)
             if (BuildConfig.DEBUG) {
                 showToast("Image not null")
@@ -200,20 +216,126 @@ class PreviewActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadShowBannerAd() {
-        adLoadCount++
-        // Log the number of times the ad has been loaded
-        Log.e("AdLoadCount", "Ad has been loaded $adLoadCount times")
 
-        AdsProvider.bannerAll.config(
-            getSharedPreferences("RemoteConfig", MODE_PRIVATE).getBoolean(
-                banner,
-                true
-            )
-        )
-        AdsProvider.bannerAll.loadAds(MyApplication.getApplication())
-        showBannerAd(AdsProvider.bannerAll, findViewById(R.id.bannerFr), keepAdsWhenLoading = true)
-        findViewById<FrameLayout>(R.id.bannerFr).visibility = View.VISIBLE
+    fun checkNetworkAndLoadAds() {
+        if (com.manual.mediation.library.sotadlib.utils.NetworkCheck.isNetworkAvailable(this) && this.getSharedPreferences(
+                "RemoteConfig",
+                Context.MODE_PRIVATE
+            ).getString(
+                BANNER_BOTTOM_TRANSLATION, "ON"
+            ).equals("ON", true)
+        ) {
+            if (NativeMaster.collapsibleBannerAdMobHashMap!!.containsKey("HomeActivity")) {
+                val collapsibleAdView: AdView? =
+                    NativeMaster.collapsibleBannerAdMobHashMap!!["HomeActivity"]
+                Handler().postDelayed({
+                    binding.shimmerLayoutBanner.stopShimmer()
+                    binding.shimmerLayoutBanner.visibility = View.GONE
+                    binding.adViewContainer.removeView(binding.shimmerLayoutBanner)
+                    binding.separator.visibility=View.VISIBLE
+
+                    val parent = collapsibleAdView?.parent as? ViewGroup
+                    parent?.removeView(collapsibleAdView)
+
+                    binding.adViewContainer.addView(collapsibleAdView)
+                }, 500)
+            } else {
+                loadBanner()
+            }
+        } else {
+            binding.adViewContainer.visibility = View.GONE
+            binding.shimmerLayoutBanner.stopShimmer()
+            binding.shimmerLayoutBanner.visibility = View.GONE
+            binding.separator.visibility=View.GONE
+
+        }
+    }
+
+    private fun loadBanner() {
+        val adView = AdView(this)
+        adView.setAdSize(adSize)
+        val pref =getSharedPreferences("RemoteConfig", MODE_PRIVATE)
+        val adId  =if (!BuildConfig.DEBUG){
+            pref.getString(AD_ID_BANNER_HOME,"ca-app-pub-3747520410546258/8310988484")
+        }
+        else{
+            resources.getString(R.string.ADMOB_BANNER_SPLASH)
+        }
+        if (adId != null) {
+            adView.adUnitId = adId
+        }
+        val extras = Bundle()
+        extras.putString("collapsible", "bottom")
+
+        val adRequest = AdRequest.Builder()
+            .addNetworkExtrasBundle(AdMobAdapter::class.java, extras)
+            .build()
+
+        adView.loadAd(adRequest)
+        adView.adListener = object : AdListener() {
+            override fun onAdLoaded() {
+                binding.adViewContainer.removeAllViews()
+                binding.adViewContainer.addView(adView)
+                if (getSharedPreferences("RemoteConfig", MODE_PRIVATE).getString(BANNER_HOME, "SAVE").equals("SAVE")) {
+                    NativeMaster.collapsibleBannerAdMobHashMap!!["HomeFragment"] = adView
+                }
+
+                binding.shimmerLayoutBanner?.stopShimmer()
+                binding.shimmerLayoutBanner?.visibility = View.GONE
+                binding.separator.visibility=View.VISIBLE
+            }
+
+            override fun onAdFailedToLoad(error: LoadAdError) {
+                binding.shimmerLayoutBanner?.stopShimmer()
+                binding.shimmerLayoutBanner?.visibility = View.GONE
+                binding.separator.visibility=View.GONE
+            }
+
+            override fun onAdOpened() {
+            }
+
+            override fun onAdClicked() {
+
+            }
+
+            override fun onAdClosed() {
+
+            }
+        }
+    }
+
+    private val adSize: AdSize
+        get() {
+            val display = this.windowManager.defaultDisplay
+            val outMetrics = DisplayMetrics()
+            display.getMetrics(outMetrics)
+
+            val density = outMetrics.density
+
+            var adWidthPixels = binding.adViewContainer.width.toFloat()
+            if (adWidthPixels == 0f) {
+                adWidthPixels = outMetrics.widthPixels.toFloat()
+            }
+            val adWidth = (adWidthPixels / density).toInt()
+            return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidth)
+        }
+    fun setStatusBarColor(activity: Activity, color: Int) {
+        val window = activity.window
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) { // Android 15+
+            window.decorView.setOnApplyWindowInsetsListener { view, insets ->
+                val statusBarInsets = insets.getInsets(WindowInsets.Type.statusBars())
+                view.setBackgroundColor(color)
+
+                // Adjust padding to avoid overlap
+                view.setPadding(0, statusBarInsets.top, 0, 0)
+                insets
+            }
+        } else {
+            // For Android 14 and below
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+            window.statusBarColor = color
+        }
     }
 
     private fun showCustomDialog() {
@@ -422,26 +544,7 @@ class PreviewActivity : AppCompatActivity() {
         }
     }
 
-    private fun hideSystemUI() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // For Android 11 and above
-            window.setDecorFitsSystemWindows(false)
-            val controller = window.insetsController
-            controller?.hide(WindowInsets.Type.systemBars())
-            controller?.systemBarsBehavior =
-                WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        } else {
-            // For Android 10 and below
-            window.decorView.systemUiVisibility = (
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            or View.SYSTEM_UI_FLAG_FULLSCREEN
-                            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    )
-        }
-    }
+
 
 
     private fun processLanguageResult(languageResult: String) {

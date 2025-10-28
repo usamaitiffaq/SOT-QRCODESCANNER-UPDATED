@@ -113,9 +113,7 @@
             android:name=".notification.AlarmReceiver"
             android:enabled="true" />
 
-        <activity
-            android:name=".activities.LanguageSelectedActivity"
-            android:exported="false" />
+
 
         <activity
             android:name=".activities.SplashQRActivity"
@@ -126,10 +124,6 @@
             android:configChanges="uiMode|orientation|screenSize"
             android:exported="false" />
 
-        <activity
-            android:name=".activities.LanguageActivity"
-            android:configChanges="orientation"
-            android:exported="false" />
 
         <activity
             android:name=".activities.FirstOpenActivity"
@@ -138,10 +132,6 @@
             android:theme="@style/Theme.NavigationDrawerBottomNavigationBar"
             android:windowSoftInputMode="adjustResize" />
 
-        <activity
-            android:name="com.google.android.gms.ads.AdActivity"
-            android:theme="@style/FullscreenAdTheme"
-            tools:replace="android:theme" />
 
         <service
             android:name=".firebase.FirebaseMessageReceiver"
@@ -167,10 +157,6 @@
             android:name="com.google.mlkit.vision.DEPENDENCIES"
             android:value="ocr" />
 
-        <provider
-            android:name="com.facebook.FacebookContentProvider"
-            android:authorities="com.facebook.app.FacebookContentProvider1042954937400237"
-            android:exported="true" />
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.qrcodescanner.barcodereader.qrgenerator.fileprovider"

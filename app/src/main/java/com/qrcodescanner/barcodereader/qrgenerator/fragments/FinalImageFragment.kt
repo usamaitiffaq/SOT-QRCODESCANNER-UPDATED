@@ -2,17 +2,21 @@ package com.qrcodescanner.barcodereader.qrgenerator.fragments
 
 import android.Manifest
 import android.app.Activity
+import android.app.Dialog
 import android.app.ProgressDialog
 import android.content.ContentValues
 import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.PointF
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
@@ -26,14 +30,26 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.appcompat.widget.AppCompatButton
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.NavController
+import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
+import com.manual.mediation.library.sotadlib.utils.NetworkCheck
+import com.qrcodescanner.barcodereader.qrgenerator.BuildConfig
 import com.qrcodescanner.barcodereader.qrgenerator.R
+import com.qrcodescanner.barcodereader.qrgenerator.activities.HomeActivity
 import com.qrcodescanner.barcodereader.qrgenerator.ads.CustomFirebaseEvents
+import com.qrcodescanner.barcodereader.qrgenerator.ads.InterstitialClassAdMob
+import com.qrcodescanner.barcodereader.qrgenerator.ads.NewNativeAdClass
+import com.qrcodescanner.barcodereader.qrgenerator.databinding.FragmentFinalImageBinding
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_NATIVE_INSIDE
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.INTERSTITIAL_DOWNLOAD_QR
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.INTERSTITIAL_SAVE_QR
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.NATIVE_FINAL_IMAGE
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -63,25 +79,37 @@ class FinalImageFragment : Fragment(), View.OnTouchListener {
     private lateinit var scaleGestureDetector: ScaleGestureDetector
     private lateinit var gestureDetector: GestureDetector
     private lateinit var qrCodeBitmap: Bitmap
+    private lateinit var binding: FragmentFinalImageBinding
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_final_image, container, false)
-        selectedImageView = view.findViewById(R.id.selectedImageView)
-        overlayImageView = view.findViewById(R.id.overlayImageView)
-        pasteCodeButton = view.findViewById(R.id.pasteCodeButton)
-        saveButton = view.findViewById(R.id.saveButton)
+
+
+        binding = FragmentFinalImageBinding.inflate(inflater, container, false)
+        return binding.root
+
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+
+        selectedImageView = binding.selectedImageView
+        overlayImageView = binding.overlayImageView
+        pasteCodeButton = binding.pasteCodeButton
+        saveButton = binding.saveButton
         navController = findNavController()
+
 
         val args = FinalImageFragmentArgs.fromBundle(requireArguments())
         val filePath = args.bitmapByteArray // make sure this is the actual file path string
         val file = File(filePath)
 
         if (file.exists()) {
-             qrCodeBitmap = BitmapFactory.decodeFile(file.absolutePath)
+            qrCodeBitmap = BitmapFactory.decodeFile(file.absolutePath)
             overlayImageView.setImageBitmap(qrCodeBitmap)
             overlayImageView.visibility = View.VISIBLE // Ensure it's visible initially
             overlayImageView.scaleType = ImageView.ScaleType.MATRIX
@@ -95,11 +123,8 @@ class FinalImageFragment : Fragment(), View.OnTouchListener {
         }
 
 
-
-
-
-       // val args = FinalImageFragmentArgs.fromBundle(requireArguments())
-      //  val filePath = args.bitmapByteArray
+        // val args = FinalImageFragmentArgs.fromBundle(requireArguments())
+        //  val filePath = args.bitmapByteArray
         //qrCodeBitmap = BitmapFactory.decodeFile(filePath) ?: throw IllegalArgumentException("Invalid file path")
         // Initialize the overlay image
 
@@ -112,13 +137,45 @@ class FinalImageFragment : Fragment(), View.OnTouchListener {
         }
 
         saveButton.setOnClickListener {
+         combineAndSaveBitmap()
             // Combine and save the image
-            combineAndSaveBitmap()
+
         }
 
         setupGestureDetection()
         overlayImageView.setOnTouchListener(this)
-        return view
+
+        if (NetworkCheck.isNetworkAvailable(requireActivity())
+            && requireActivity().getSharedPreferences("RemoteConfig", Context.MODE_PRIVATE)
+                .getString(NATIVE_FINAL_IMAGE, "ON").equals("ON", true)
+        ) {
+            val pref = requireContext().getSharedPreferences("RemoteConfig", MODE_PRIVATE)
+            val adId = if (!BuildConfig.DEBUG) {
+                pref.getString(
+                    AD_ID_NATIVE_INSIDE,
+                    "ca-app-pub-3747520410546258/9098909246"
+                )
+            } else {
+                resources.getString(R.string.ADMOB_NATIVE_LANGUAGE_1)
+            }
+            NewNativeAdClass.checkAdRequestAdmob(
+                mContext = requireActivity(),
+                fragmentName = "HomeFragment",
+                adId = adId!!,
+                isMedia = true,
+                adContainer = binding.nativeAdContainerAd,
+                isMediumAd = true,
+                onFailed = {
+                    binding.nativeAdContainerAd.visibility = View.GONE
+                },
+                onAddLoaded = {
+                    binding.shimmerLayout.stopShimmer()
+                    binding.shimmerLayout.visibility = View.GONE
+                })
+        } else {
+            binding.nativeAdContainerAd.visibility = View.GONE
+        }
+
     }
 
     override fun onTouch(v: View, event: MotionEvent): Boolean {
@@ -274,7 +331,8 @@ class FinalImageFragment : Fragment(), View.OnTouchListener {
         val mainFolderName = "QR Code Scanner"
         val subFolderName = "Created QR"
         val fileName = "QRCode_${System.currentTimeMillis()}.png"
-        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val downloadsDir =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         val qrCodeScannerDir = File(downloadsDir, mainFolderName)
         val createdQRDir = File(qrCodeScannerDir, subFolderName)
         // Create the main folder and subfolder if they don't exist
@@ -285,7 +343,10 @@ class FinalImageFragment : Fragment(), View.OnTouchListener {
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
             put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
-            put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/$mainFolderName/$subFolderName")
+            put(
+                MediaStore.MediaColumns.RELATIVE_PATH,
+                "${Environment.DIRECTORY_DOWNLOADS}/$mainFolderName/$subFolderName"
+            )
         }
 
         val progressDialog = ProgressDialog(requireContext()).apply {
@@ -298,11 +359,36 @@ class FinalImageFragment : Fragment(), View.OnTouchListener {
         if (uri != null) {
             resolver.openOutputStream(uri)?.use { outputStream ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-                Toast.makeText(requireContext(), "Image saved to Downloads/$mainFolderName/$subFolderName", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "Image saved to Downloads/$mainFolderName/$subFolderName",
+                    Toast.LENGTH_SHORT
+                ).show()
                 Handler(Looper.getMainLooper()).postDelayed({
                     progressDialog.dismiss()
-                    val action = FinalImageFragmentDirections.actionFastToHome()
-                    navController.navigate(action)
+
+                    if (NetworkCheck.isNetworkAvailable(context)
+                        && requireActivity().getSharedPreferences("RemoteConfig", Context.MODE_PRIVATE)
+                            .getString(INTERSTITIAL_SAVE_QR, "ON").equals("ON", ignoreCase = true)
+                    ) {
+                        InterstitialClassAdMob.showIfAvailableOrLoadAdMobInterstitial(
+                            context = context,
+                            "Translation",
+                            onAdClosedCallBackAdmob = {
+                                Handler(Looper.getMainLooper()).postDelayed({
+                                    val action = FinalImageFragmentDirections.actionFastToHome()
+                                    navController.navigate(action)
+                                }, 300)
+                            },
+                            onAdShowedCallBackAdmob = {
+                            }
+                        )
+                    } else {
+                        val action = FinalImageFragmentDirections.actionFastToHome()
+                        navController.navigate(action)
+                    }
+
+
                 }, 1000) // Show the progress bar for 1 second
             }
         } else {
@@ -356,7 +442,32 @@ class FinalImageFragment : Fragment(), View.OnTouchListener {
         try {
             FileOutputStream(file).use { outputStream ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-                Toast.makeText(requireContext(), "Image saved to Downloads/$mainFolderName/$subFolderName", Toast.LENGTH_SHORT).show() }
+                Toast.makeText(
+                    requireContext(),
+                    "Image saved to Downloads/$mainFolderName/$subFolderName",
+                    Toast.LENGTH_SHORT
+                ).show()
+                if (NetworkCheck.isNetworkAvailable(context)
+                    && requireActivity().getSharedPreferences("RemoteConfig", Context.MODE_PRIVATE)
+                        .getString(INTERSTITIAL_SAVE_QR, "ON").equals("ON", ignoreCase = true)
+                ) {
+                    InterstitialClassAdMob.showIfAvailableOrLoadAdMobInterstitial(
+                        context = context,
+                        "Translation",
+                        onAdClosedCallBackAdmob = {
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                val action = FinalImageFragmentDirections.actionFastToHome()
+                                navController.navigate(action)
+                            }, 300)
+                        },
+                        onAdShowedCallBackAdmob = {
+                        }
+                    )
+                } else {
+                    val action = FinalImageFragmentDirections.actionFastToHome()
+                    navController.navigate(action)
+                }
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             Toast.makeText(requireContext(), "Error saving image", Toast.LENGTH_SHORT).show()
@@ -364,7 +475,6 @@ class FinalImageFragment : Fragment(), View.OnTouchListener {
             progressDialog.dismiss()
         }
     }
-
 
 
     private fun createBitmapFromView(ctx: Context, view: View): Bitmap {
@@ -402,6 +512,7 @@ class FinalImageFragment : Fragment(), View.OnTouchListener {
     override fun onResume() {
         super.onResume()
 
+        (activity as? HomeActivity)?.hideBannerAd()
         val TopText: TextView = requireActivity().findViewById(R.id.mainText)
         TopText.visibility = View.VISIBLE
         TopText.text = getString(R.string.qr_code_reader)
@@ -411,7 +522,10 @@ class FinalImageFragment : Fragment(), View.OnTouchListener {
             back.visibility = View.VISIBLE
         }
         back.setOnClickListener {
-            requireActivity().onBackPressed()
+            showDiscardChangesDialog {
+                val action = FinalImageFragmentDirections.actionFastToHome()
+                navController.navigate(action)
+            }
         }
         val setting = requireActivity().findViewById<ImageView>(R.id.ivSetting)
         if (setting != null) {
@@ -419,13 +533,31 @@ class FinalImageFragment : Fragment(), View.OnTouchListener {
         }
 
 
-        val download = requireActivity().findViewById<ImageView>(R.id.ivDownload)
+        val download = requireActivity().findViewById<TextView>(R.id.ivDownload)
         if (download != null) {
             download.visibility = View.VISIBLE
         }
 
         download.setOnClickListener {
-            saveImageToDownloads(qrCodeBitmap)
+            if (NetworkCheck.isNetworkAvailable(context)
+                && requireActivity().getSharedPreferences("RemoteConfig", Context.MODE_PRIVATE)
+                    .getString(INTERSTITIAL_DOWNLOAD_QR, "ON").equals("ON", ignoreCase = true)
+            ) {
+                InterstitialClassAdMob.showIfAvailableOrLoadAdMobInterstitial(
+                    context = context,
+                    "Translation",
+                    onAdClosedCallBackAdmob = {
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            saveImageToDownloads(qrCodeBitmap)
+                        }, 300)
+                    },
+                    onAdShowedCallBackAdmob = {
+                    }
+                )
+            } else {
+                saveImageToDownloads(qrCodeBitmap)
+            }
+
         }
 
         val ivClose = requireActivity().findViewById<ImageView>(R.id.ivPro)
@@ -433,6 +565,29 @@ class FinalImageFragment : Fragment(), View.OnTouchListener {
             ivClose.setImageResource(R.drawable.ic_premium)
             ivClose.visibility = View.INVISIBLE
         }
+    }
+
+
+    private fun showDiscardChangesDialog(onConfirm: () -> Unit) {
+        val dialog = Dialog(requireContext())
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(R.layout.custom_discard_dialog)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.setCancelable(true)
+
+        val btnDiscard = dialog.findViewById<ConstraintLayout>(R.id.btnDiscard)
+        val btnKeep = dialog.findViewById<AppCompatButton>(R.id.btnKeep)
+
+        btnDiscard.setOnClickListener {
+            dialog.dismiss()
+            onConfirm()
+        }
+
+        btnKeep.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
 
@@ -524,6 +679,8 @@ class FinalImageFragment : Fragment(), View.OnTouchListener {
         }
     }
 }
+
+
 
 
 

@@ -13,6 +13,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.qrcodescanner.barcodereader.qrgenerator.R
+import com.qrcodescanner.barcodereader.qrgenerator.activities.FOFActivity
 import com.qrcodescanner.barcodereader.qrgenerator.activities.FirstOpenActivity
 
 
@@ -39,10 +40,10 @@ class StickyNotification {
             createNotificationChannel(context)
 
             // Create unique intents for each action
-            val qrScanIntent = Intent(context, FirstOpenActivity::class.java).apply { putExtra("action", "scan_qr") }
-            val createQrIntent = Intent(context, FirstOpenActivity::class.java).apply { putExtra("action", "create_qr") }
-            val translateIntent = Intent(context, FirstOpenActivity::class.java).apply { putExtra("action", "translate_image") }
-            val homeIntent = Intent(context, FirstOpenActivity::class.java).apply { putExtra("action", "home") }
+            val qrScanIntent = Intent(context, FOFActivity::class.java).apply { putExtra("action", "scan_qr") }
+            val createQrIntent = Intent(context, FOFActivity::class.java).apply { putExtra("action", "create_qr") }
+            val translateIntent = Intent(context, FOFActivity::class.java).apply { putExtra("action", "translate_image") }
+            val homeIntent = Intent(context, FOFActivity::class.java).apply { putExtra("action", "home") }
 
             // Create unique PendingIntents
             val qrScanPendingIntent = PendingIntent.getActivity(context, 0, qrScanIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)

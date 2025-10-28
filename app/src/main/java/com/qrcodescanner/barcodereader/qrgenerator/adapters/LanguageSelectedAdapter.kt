@@ -9,7 +9,7 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.qrcodescanner.barcodereader.qrgenerator.R
-import com.qrcodescanner.barcodereader.qrgenerator.utils.AdsProvider
+
 import com.qrcodescanner.barcodereader.qrgenerator.utils.AppLanguages
 import com.qrcodescanner.barcodereader.qrgenerator.utils.PrefHelper
 
@@ -71,9 +71,6 @@ class LanguageSelectedAdapter(
             onItemClickListener(position)
 
             // Trigger ad reload
-            if (reloadAds) {
-                AdsProvider.nativeLanguageTwo.loadAds(ctx)
-            }
         }
     }
 

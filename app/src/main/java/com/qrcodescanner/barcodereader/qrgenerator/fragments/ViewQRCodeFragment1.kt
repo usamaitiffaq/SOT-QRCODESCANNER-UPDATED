@@ -32,7 +32,7 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import apero.aperosg.monetization.util.showNativeAd
+
 import com.bumptech.glide.Glide
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
@@ -40,7 +40,7 @@ import com.qrcodescanner.barcodereader.qrgenerator.myapplication.MyApplication
 import com.qrcodescanner.barcodereader.qrgenerator.R
 import com.qrcodescanner.barcodereader.qrgenerator.ads.NetworkCheck
 import com.qrcodescanner.barcodereader.qrgenerator.database.QRCodeDatabaseHelper
-import com.qrcodescanner.barcodereader.qrgenerator.utils.AdsProvider
+
 import com.qrcodescanner.barcodereader.qrgenerator.utils.native_result
 import java.io.File
 import java.io.FileOutputStream
@@ -258,16 +258,12 @@ class ViewQRCodeFragment1 : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        if (NetworkCheck.isNetworkAvailable(requireContext())) {
-            AdsProvider.nativeResult.config(requireActivity().getSharedPreferences("RemoteConfig", AppCompatActivity.MODE_PRIVATE).getBoolean(native_result, true))
-            AdsProvider.nativeResult.loadAds(MyApplication.getApplication())
-            showNativeAd(AdsProvider.nativeResult, requireActivity().findViewById(R.id.layoutAdNative), R.layout.layout_home_native_ad)
-        }
+
         val topText: TextView = requireActivity().findViewById(R.id.mainText)
         topText.visibility = View.VISIBLE
         topText.text = getString(R.string.qr_code_scanner)
 
-        val download = requireActivity().findViewById<ImageView>(R.id.ivDownload)
+        val download = requireActivity().findViewById<TextView>(R.id.ivDownload)
         if (download != null) {
             download.visibility = View.GONE
         }

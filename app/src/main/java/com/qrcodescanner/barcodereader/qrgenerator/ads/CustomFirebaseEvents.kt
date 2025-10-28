@@ -1,6 +1,7 @@
 package com.qrcodescanner.barcodereader.qrgenerator.ads
 
 import android.app.Activity
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import com.google.firebase.analytics.FirebaseAnalytics
@@ -55,6 +56,16 @@ object CustomFirebaseEvents {
 //
 //        analytics.logEvent(eventName, null)
 //    }*/
+
+    fun interstitialAdEvent(context: Context, eventName: String) {
+        CustomFirebaseEvents.analytics = FirebaseAnalytics.getInstance(context)
+        CustomFirebaseEvents.bundle = Bundle()
+
+        CustomFirebaseEvents.bundle.putString("interstitialAd$eventName", "interstitialAd$eventName")
+        CustomFirebaseEvents.analytics.logEvent("interstitialAd$eventName",
+            CustomFirebaseEvents.bundle
+        )
+    }
 
     fun logEvent(context: Activity, screenName: String = "", trigger: String = "", eventName: String) {
         init(context)

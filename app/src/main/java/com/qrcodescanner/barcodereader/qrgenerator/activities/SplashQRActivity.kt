@@ -9,16 +9,13 @@ import android.text.TextUtils
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
-import apero.aperosg.monetization.screenflow.registerSplashAdsListener
-import com.ads.control.admob.AdsConsentManager
-import com.ads.control.ads.AperoAd
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import com.qrcodescanner.barcodereader.qrgenerator.myapplication.MyApplication
 import com.qrcodescanner.barcodereader.qrgenerator.ads.CustomFirebaseEvents
 import com.qrcodescanner.barcodereader.qrgenerator.ads.NetworkCheck
 import com.qrcodescanner.barcodereader.qrgenerator.databinding.ActivitySplashQrBinding
-import com.qrcodescanner.barcodereader.qrgenerator.utils.AdsProvider
+
 import com.qrcodescanner.barcodereader.qrgenerator.utils.BaseActivity
 import com.qrcodescanner.barcodereader.qrgenerator.utils.PrefHelper
 import com.qrcodescanner.barcodereader.qrgenerator.utils.banner
@@ -107,17 +104,17 @@ class SplashQRActivity : BaseActivity() {
             val configSettings =
                 FirebaseRemoteConfigSettings.Builder().setMinimumFetchIntervalInSeconds(0).build()
             mFirebaseRemoteConfig!!.setConfigSettingsAsync(configSettings)
-            mFirebaseRemoteConfig!!.fetchAndActivate().addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    mFirebaseRemoteConfig!!.activate()
-                    saveAllValues()
-                    requestUMP()
-                } else {
-                    requestUMP()
-                }
-            }
-        } else {
-            requestUMP()
+//            mFirebaseRemoteConfig!!.fetchAndActivate().addOnCompleteListener { task ->
+//                if (task.isSuccessful) {
+//                    mFirebaseRemoteConfig!!.activate()
+//                    saveAllValues()
+//                    requestUMP()
+//                } else {
+//                    requestUMP()
+//                }
+//            }
+//        } else {
+//            requestUMP()
         }
     }
 
@@ -251,100 +248,100 @@ class SplashQRActivity : BaseActivity() {
         }
     }
 
-    private fun requestUMP() {
-        val adsConsentManager = AdsConsentManager(this)
-        adsConsentManager.requestUMP(
-            true,
-            "84C3994693FB491110A5A4AEF8C5561B",
-            false
-        ) { canRequestAds ->
-            if (canRequestAds) {
-                AperoAd.getInstance().initAdsNetwork()
-
-                AdsProvider.bannerSplash.config(
-                    getSharedPreferences(
-                        "RemoteConfig",
-                        MODE_PRIVATE
-                    ).getBoolean(banner_spl, true)
-                )
-
-                AdsProvider.interSplash.config(
-                    getSharedPreferences("RemoteConfig", MODE_PRIVATE).getBoolean(
-                        inter_spl_2,
-                        true
-                    ),
-                    getSharedPreferences("RemoteConfig", MODE_PRIVATE).getBoolean(inter_spl_0, true)
-                )
-
-//                AdsProvider.interSplash.loadAds(this)
-//                AdsProvider.bannerSplash.loadAds(this)
-                if (!prefHelper.getBoolean("isLanguageCheck")) {
-                    AdsProvider.nativeLanguageOne.config(
-                        getSharedPreferences(
-                            "RemoteConfig",
-                            MODE_PRIVATE
-                        ).getBoolean(native_lang1_2, true),
-                        getSharedPreferences(
-                            "RemoteConfig",
-                            MODE_PRIVATE
-                        ).getBoolean(native_lang1_0, true)
-                    )
-                    AdsProvider.nativeLanguageOne.loadAds(MyApplication.getApplication())
-                }
-//                showBannerAd(AdsProvider.bannerSplash, binding.flAdsBanner)
-
-                if (prefHelper.getBoolean("isLanguageCheck") && !prefHelper.getBoolean("walkThrough")) {
-                    loadAdsOfWalkThrough()
-                }
-
-                registerSplashAdsListener(
-                    interSplash = AdsProvider.interSplash,
-                    bannerSplash = AdsProvider.bannerSplash,
-                    onAdShowed = {
-                        GlobalScope.launch {
-                            delay(6000)
-                            AdsProvider.nativeLanguageOne.loadAds(MyApplication.getApplication())
-                        }
-                    },
-                    onNextAction = {
-                        gotoMainActivity()
-                    }
-                )
-            } else {
-                gotoMainActivity()
-            }
-        }
-    }
-
-    private fun gotoMainActivity() {
-        val intent = if (!prefHelper.getBoolean("isLanguageCheck")) {
-            Intent(this@SplashQRActivity, LanguageActivity::class.java).putExtra("From", "Splash")
-        } else if (!prefHelper.getBoolean("walkThrough")) {
-            Intent(this@SplashQRActivity, WalkThroughActivity::class.java)
-        } else {
-            Intent(this@SplashQRActivity, HomeActivity::class.java)
-        }
-        startActivity(intent)
-        finish()
-    }
-
-    private fun loadAdsOfWalkThrough() {
-        AdsProvider.nativeWalkThroughOne.config(
-            getSharedPreferences("RemoteConfig", MODE_PRIVATE).getBoolean(native_onb1_2, true),
-            getSharedPreferences("RemoteConfig", MODE_PRIVATE).getBoolean(native_onb1_0, true)
-        )
-        AdsProvider.nativeWalkThroughOne.loadAds(MyApplication.getApplication())
-
-        AdsProvider.nativeWalkThroughFullScreen.config(
-            getSharedPreferences("RemoteConfig", MODE_PRIVATE).getBoolean(
-                native_onb_2_f, true
-            ),
-            getSharedPreferences("RemoteConfig", MODE_PRIVATE).getBoolean(
-                native_onb_0_f, true
-            )
-        )
-        AdsProvider.nativeWalkThroughFullScreen.loadAds(MyApplication.getApplication())
-    }
+//    private fun requestUMP() {
+//        val adsConsentManager = AdsConsentManager(this)
+//        adsConsentManager.requestUMP(
+//            true,
+//            "84C3994693FB491110A5A4AEF8C5561B",
+//            false
+//        ) { canRequestAds ->
+//            if (canRequestAds) {
+//                AperoAd.getInstance().initAdsNetwork()
+//
+//                AdsProvider.bannerSplash.config(
+//                    getSharedPreferences(
+//                        "RemoteConfig",
+//                        MODE_PRIVATE
+//                    ).getBoolean(banner_spl, true)
+//                )
+//
+//                AdsProvider.interSplash.config(
+//                    getSharedPreferences("RemoteConfig", MODE_PRIVATE).getBoolean(
+//                        inter_spl_2,
+//                        true
+//                    ),
+//                    getSharedPreferences("RemoteConfig", MODE_PRIVATE).getBoolean(inter_spl_0, true)
+//                )
+//
+////                AdsProvider.interSplash.loadAds(this)
+////                AdsProvider.bannerSplash.loadAds(this)
+//                if (!prefHelper.getBoolean("isLanguageCheck")) {
+//                    AdsProvider.nativeLanguageOne.config(
+//                        getSharedPreferences(
+//                            "RemoteConfig",
+//                            MODE_PRIVATE
+//                        ).getBoolean(native_lang1_2, true),
+//                        getSharedPreferences(
+//                            "RemoteConfig",
+//                            MODE_PRIVATE
+//                        ).getBoolean(native_lang1_0, true)
+//                    )
+//                    AdsProvider.nativeLanguageOne.loadAds(MyApplication.getApplication())
+//                }
+////                showBannerAd(AdsProvider.bannerSplash, binding.flAdsBanner)
+//
+//                if (prefHelper.getBoolean("isLanguageCheck") && !prefHelper.getBoolean("walkThrough")) {
+//                    loadAdsOfWalkThrough()
+//                }
+//
+//                registerSplashAdsListener(
+//                    interSplash = AdsProvider.interSplash,
+//                    bannerSplash = AdsProvider.bannerSplash,
+//                    onAdShowed = {
+//                        GlobalScope.launch {
+//                            delay(6000)
+//                            AdsProvider.nativeLanguageOne.loadAds(MyApplication.getApplication())
+//                        }
+//                    },
+//                    onNextAction = {
+//                        gotoMainActivity()
+//                    }
+//                )
+//            } else {
+//                gotoMainActivity()
+//            }
+//        }
+//    }
+//
+//    private fun gotoMainActivity() {
+//        val intent = if (!prefHelper.getBoolean("isLanguageCheck")) {
+//            Intent(this@SplashQRActivity, LanguageActivity::class.java).putExtra("From", "Splash")
+//        } else if (!prefHelper.getBoolean("walkThrough")) {
+//            Intent(this@SplashQRActivity, WalkThroughActivity::class.java)
+//        } else {
+//            Intent(this@SplashQRActivity, HomeActivity::class.java)
+//        }
+//        startActivity(intent)
+//        finish()
+//    }
+//
+//    private fun loadAdsOfWalkThrough() {
+//        AdsProvider.nativeWalkThroughOne.config(
+//            getSharedPreferences("RemoteConfig", MODE_PRIVATE).getBoolean(native_onb1_2, true),
+//            getSharedPreferences("RemoteConfig", MODE_PRIVATE).getBoolean(native_onb1_0, true)
+//        )
+//        AdsProvider.nativeWalkThroughOne.loadAds(MyApplication.getApplication())
+//
+//        AdsProvider.nativeWalkThroughFullScreen.config(
+//            getSharedPreferences("RemoteConfig", MODE_PRIVATE).getBoolean(
+//                native_onb_2_f, true
+//            ),
+//            getSharedPreferences("RemoteConfig", MODE_PRIVATE).getBoolean(
+//                native_onb_0_f, true
+//            )
+//        )
+//        AdsProvider.nativeWalkThroughFullScreen.loadAds(MyApplication.getApplication())
+//    }
 
     private fun updateLocale(context: Context, languageCode: String) {
         val locale = Locale(languageCode)

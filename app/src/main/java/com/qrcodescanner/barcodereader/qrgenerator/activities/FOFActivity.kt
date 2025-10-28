@@ -48,6 +48,7 @@ import com.qrcodescanner.barcodereader.qrgenerator.stickynotification.StickyNoti
 import com.qrcodescanner.barcodereader.qrgenerator.utils.MyPrefHelper
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_BANNER_ADD_REMOTE
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_BANNER_CUSTOMIZATION
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_BANNER_DISCOVER_TV
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_BANNER_HOME
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_BANNER_MUSIC_LIST
@@ -60,8 +61,10 @@ import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_NATIVE_CASTING_CONNECT
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_NATIVE_DISCOVER_TV
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_NATIVE_IMAGE_PREVIEW
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_NATIVE_INSIDE
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_NATIVE_LANGUAGE_1
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_NATIVE_LANGUAGE_2
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_NATIVE_NOFTI_DRAWER
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_NATIVE_SURVEY_1
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_NATIVE_SURVEY_2
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_NATIVE_TAP_START
@@ -75,23 +78,35 @@ import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.AD_ID_SPLASH_RESUME
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.BANNER_ADD_REMOTE
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.BANNER_BOTTOM_HOME
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.BANNER_BOTTOM_TRANSLATION
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.BANNER_BOTTOM_TRANSLATION_CONVERTED
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.BANNER_CUSTOMIZATION
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.BANNER_DISCOVER_TV
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.BANNER_HOME
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.BANNER_MUSIC_LIST
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.BANNER_PHOTO_GALLARY
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.BANNER_REMOTE_ADDED
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.BANNER_SPLASH
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.INTERSTITIAL_DOWNLOAD_QR
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.INTERSTITIAL_ENTER_CREATE_QR
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.INTERSTITIAL_ENTER_TRANSLATION
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.INTERSTITIAL_SAVE_QR
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.INTERSTITIAL_SCAN_QR
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.INTER_ADDED_REMOTE
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.INTER_CASTING_DISCONNECT
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.INTER_CASTING_ENTER
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.INTER_SAVE_REMOTE
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.INTER_SETTINGS_ENTER
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.NATIVE_BOTTOM_HOME
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.NATIVE_BOTTOM_SHEET
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.NATIVE_CASTING_CONNECT
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.NATIVE_CREATE_DOCUMENT
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.NATIVE_CREATE_QR
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.NATIVE_DISCOVER_TV
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.NATIVE_FINAL_IMAGE
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.NATIVE_IMAGE_PREVIEW
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.NATIVE_SAVE_DOCUMENT
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.NATIVE_TAP_START
-import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.NATIVE_VIDEO_AUDIO_CONTROL
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.OVERALL_BANNER_RELOADING
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.OVERALL_NATIVE_RELOADING
 import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.TIMER_NATIVE_F_SRC
@@ -99,6 +114,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
+
 
 class FOFActivity : AppCompatActivity() {
     private var firstOpenFlowAdIds: HashMap<String, String> = HashMap()
@@ -257,9 +273,11 @@ class FOFActivity : AppCompatActivity() {
             this["ADMOB_NATIVE_SURVEY_2"] = getString(R.string.ADMOB_NATIVE_SURVEY_2)
             this["ADMOB_NATIVE_WALKTHROUGH_1"] = getString(R.string.ADMOB_NATIVE_WALKTHROUGH_1)
             this["ADMOB_NATIVE_WALKTHROUGH_2"] = getString(R.string.ADMOB_NATIVE_WALKTHROUGH_2)
-            this["ADMOB_NATIVE_WALKTHROUGH_FULLSCR"] = getString(R.string.ADMOB_NATIVE_WALKTHROUGH_FULLSCR)
+            this["ADMOB_NATIVE_WALKTHROUGH_FULLSCR"] =
+                getString(R.string.ADMOB_NATIVE_WALKTHROUGH_FULLSCR)
             this["ADMOB_NATIVE_WALKTHROUGH_3"] = getString(R.string.ADMOB_NATIVE_WALKTHROUGH_3)
-            this["ADMOB_INTERSTITIAL_LETS_START"] = getString(R.string.ADMOB_INTERSTITIAL_LETS_START)
+            this["ADMOB_INTERSTITIAL_LETS_START"] =
+                getString(R.string.ADMOB_INTERSTITIAL_LETS_START)
         }
     }
 
@@ -267,18 +285,24 @@ class FOFActivity : AppCompatActivity() {
         val remoteConfigHashMap: HashMap<String, Any> = HashMap()
 
         remoteConfigHashMap.apply {
-            this["RESUME_INTER_SPLASH"] = "${prefs.getString(RemoteConfigKeys.RESUME_INTER_SPLASH, "Empty")}"
+            this["RESUME_INTER_SPLASH"] =
+                "${prefs.getString(RemoteConfigKeys.RESUME_INTER_SPLASH, "Empty")}"
             this["BANNER_SPLASH"] = prefs.getBoolean(BANNER_SPLASH, false)
             this["NATIVE_LANGUAGE_1"] = prefs.getBoolean(RemoteConfigKeys.NATIVE_LANGUAGE_1, false)
             this["NATIVE_LANGUAGE_2"] = prefs.getBoolean(RemoteConfigKeys.NATIVE_LANGUAGE_2, false)
             this["NATIVE_SURVEY_1"] = prefs.getBoolean(RemoteConfigKeys.NATIVE_SURVEY_1, false)
             this["NATIVE_SURVEY_2"] = prefs.getBoolean(RemoteConfigKeys.NATIVE_SURVEY_2, false)
             this["RESUME_OVERALL"] = prefs.getBoolean(RemoteConfigKeys.RESUME_OVERALL, false)
-            this["NATIVE_WALKTHROUGH_1"] = prefs.getBoolean(RemoteConfigKeys.NATIVE_WALKTHROUGH_1, false)
-            this["NATIVE_WALKTHROUGH_2"] = prefs.getBoolean(RemoteConfigKeys.NATIVE_WALKTHROUGH_2, false)
-            this["NATIVE_WALKTHROUGH_FULLSCR"] = prefs.getBoolean(RemoteConfigKeys.NATIVE_WALKTHROUGH_FULLSCR, false)
-            this["NATIVE_WALKTHROUGH_3"] = prefs.getBoolean(RemoteConfigKeys.NATIVE_WALKTHROUGH_3, false)
-            this["INTERSTITIAL_LETS_START"] = prefs.getBoolean(RemoteConfigKeys.INTERSTITIAL_LETS_START, false)
+            this["NATIVE_WALKTHROUGH_1"] =
+                prefs.getBoolean(RemoteConfigKeys.NATIVE_WALKTHROUGH_1, false)
+            this["NATIVE_WALKTHROUGH_2"] =
+                prefs.getBoolean(RemoteConfigKeys.NATIVE_WALKTHROUGH_2, false)
+            this["NATIVE_WALKTHROUGH_FULLSCR"] =
+                prefs.getBoolean(RemoteConfigKeys.NATIVE_WALKTHROUGH_FULLSCR, false)
+            this["NATIVE_WALKTHROUGH_3"] =
+                prefs.getBoolean(RemoteConfigKeys.NATIVE_WALKTHROUGH_3, false)
+            this["INTERSTITIAL_LETS_START"] =
+                prefs.getBoolean(RemoteConfigKeys.INTERSTITIAL_LETS_START, false)
             this["TIMER_NATIVE_F_SRC"] = "${prefs.getString(TIMER_NATIVE_F_SRC, "Empty")}"
         }
 
@@ -381,6 +405,10 @@ class FOFActivity : AppCompatActivity() {
 
             getString(AD_ID_RESUME_OVERALL).trim().takeIf { it.isNotEmpty() }?.let {
                 editor.putString(AD_ID_RESUME_OVERALL, it)
+            }
+
+            getString(AD_ID_NATIVE_INSIDE).trim().takeIf { it.isNotEmpty() }?.let {
+                editor.putString(AD_ID_NATIVE_INSIDE, it)
             }
 
             getString(AD_ID_INTER_INSIDE).trim().takeIf { it.isNotEmpty() }?.let {
@@ -487,6 +515,14 @@ class FOFActivity : AppCompatActivity() {
             }
 
             getString(
+                AD_ID_NATIVE_NOFTI_DRAWER
+            ).trim().takeIf { it.isNotEmpty() }?.let {
+                editor.putString(
+                    AD_ID_NATIVE_NOFTI_DRAWER, it
+                )
+            }
+
+            getString(
                 BANNER_MUSIC_LIST
             ).trim().takeIf { it.isNotEmpty() }?.let {
                 editor.putString(
@@ -511,13 +547,8 @@ class FOFActivity : AppCompatActivity() {
                 )
             }
 
-            getString(
-                INTER_CASTING_ENTER
-
-            ).trim().takeIf { it.isNotEmpty() }?.let {
-                editor.putString(
-                    INTER_CASTING_ENTER, it
-                )
+            getString(INTER_CASTING_ENTER).trim().takeIf { it.isNotEmpty() }?.let {
+                editor.putString(INTER_CASTING_ENTER, it)
             }
 
             getString(
@@ -538,29 +569,32 @@ class FOFActivity : AppCompatActivity() {
                 )
             }
 
-            getString(
-                NATIVE_VIDEO_AUDIO_CONTROL
 
-            ).trim().takeIf { it.isNotEmpty() }?.let {
-                editor.putString(
-                    NATIVE_VIDEO_AUDIO_CONTROL, it
-                )
-            }
 
-            getString(
-                AD_ID_BANNER_DISCOVER_TV
-
-            ).trim().takeIf { it.isNotEmpty() }?.let {
-                editor.putString(
-                    AD_ID_BANNER_DISCOVER_TV, it
-                )
-            }
 
             getString(
                 AD_ID_NATIVE_DISCOVER_TV
             ).trim().takeIf { it.isNotEmpty() }?.let {
                 editor.putString(
                     AD_ID_NATIVE_DISCOVER_TV, it
+                )
+            }
+
+
+            getString(
+                AD_ID_BANNER_CUSTOMIZATION
+            ).trim().takeIf { it.isNotEmpty() }?.let {
+                editor.putString(
+                    AD_ID_BANNER_CUSTOMIZATION, it
+                )
+            }
+
+
+            getString(
+                AD_ID_NATIVE_INSIDE
+            ).trim().takeIf { it.isNotEmpty() }?.let {
+                editor.putString(
+                    AD_ID_NATIVE_INSIDE, it
                 )
             }
 
@@ -573,7 +607,8 @@ class FOFActivity : AppCompatActivity() {
                 )
             }
 
-            getString(NATIVE_DISCOVER_TV
+            getString(
+                NATIVE_DISCOVER_TV
             ).trim().takeIf { it.isNotEmpty() }?.let {
                 editor.putString(
 
@@ -581,7 +616,8 @@ class FOFActivity : AppCompatActivity() {
                 )
             }
 
-            getString(AD_ID_BANNER_HOME
+            getString(
+                AD_ID_BANNER_HOME
             ).trim().takeIf { it.isNotEmpty() }?.let {
                 editor.putString(AD_ID_BANNER_HOME, it)
             }
@@ -632,12 +668,104 @@ class FOFActivity : AppCompatActivity() {
     }
 
     private fun saveAllValuesForInsideAppAds(onComplete: (() -> Unit)? = null) {
+
         if (!TextUtils.isEmpty(mFirebaseRemoteConfig!!.getString(BANNER_BOTTOM_HOME).trim())) {
             getSharedPreferences("RemoteConfig", MODE_PRIVATE).edit().putString(
                 BANNER_BOTTOM_HOME, mFirebaseRemoteConfig!!.getString(BANNER_BOTTOM_HOME)
             ).apply()
         }
 
+        if (!TextUtils.isEmpty(mFirebaseRemoteConfig!!.getString(NATIVE_CREATE_QR).trim())) {
+            getSharedPreferences("RemoteConfig", MODE_PRIVATE).edit().putString(
+                NATIVE_CREATE_QR, mFirebaseRemoteConfig!!.getString(NATIVE_CREATE_QR)
+            ).apply()
+        }
+
+
+        if (!TextUtils.isEmpty(mFirebaseRemoteConfig!!.getString(BANNER_CUSTOMIZATION).trim())) {
+            getSharedPreferences("RemoteConfig", MODE_PRIVATE).edit().putString(
+                BANNER_CUSTOMIZATION, mFirebaseRemoteConfig!!.getString(BANNER_CUSTOMIZATION)
+            ).apply()
+        }
+
+        if (!TextUtils.isEmpty(mFirebaseRemoteConfig!!.getString(INTERSTITIAL_SCAN_QR).trim())) {
+            getSharedPreferences("RemoteConfig", MODE_PRIVATE).edit().putString(
+                INTERSTITIAL_SCAN_QR, mFirebaseRemoteConfig!!.getString(INTERSTITIAL_SCAN_QR)
+            ).apply()
+        }
+
+        if (!TextUtils.isEmpty(
+                mFirebaseRemoteConfig!!.getString(INTERSTITIAL_ENTER_TRANSLATION).trim()
+            )
+        ) {
+            getSharedPreferences("RemoteConfig", MODE_PRIVATE).edit().putString(
+                INTERSTITIAL_ENTER_TRANSLATION,
+                mFirebaseRemoteConfig!!.getString(INTERSTITIAL_ENTER_TRANSLATION)
+            ).apply()
+        }
+
+        if (!TextUtils.isEmpty(
+                mFirebaseRemoteConfig!!.getString(INTERSTITIAL_ENTER_CREATE_QR).trim()
+            )
+        ) {
+            getSharedPreferences("RemoteConfig", MODE_PRIVATE).edit().putString(
+                INTERSTITIAL_ENTER_CREATE_QR,
+                mFirebaseRemoteConfig!!.getString(INTERSTITIAL_ENTER_CREATE_QR)
+            ).apply()
+        }
+
+        if (!TextUtils.isEmpty(mFirebaseRemoteConfig!!.getString(NATIVE_FINAL_IMAGE).trim())) {
+            getSharedPreferences("RemoteConfig", MODE_PRIVATE).edit().putString(
+                NATIVE_FINAL_IMAGE, mFirebaseRemoteConfig!!.getString(NATIVE_FINAL_IMAGE)
+            ).apply()
+        }
+
+        if (!TextUtils.isEmpty(
+                mFirebaseRemoteConfig!!.getString(INTERSTITIAL_DOWNLOAD_QR).trim()
+            )
+        ) {
+            getSharedPreferences("RemoteConfig", MODE_PRIVATE).edit().putString(
+                INTERSTITIAL_DOWNLOAD_QR,
+                mFirebaseRemoteConfig!!.getString(INTERSTITIAL_DOWNLOAD_QR)
+            ).apply()
+        }
+
+        if (!TextUtils.isEmpty(mFirebaseRemoteConfig!!.getString(NATIVE_BOTTOM_SHEET).trim())) {
+            getSharedPreferences("RemoteConfig", MODE_PRIVATE).edit().putString(
+                NATIVE_BOTTOM_SHEET, mFirebaseRemoteConfig!!.getString(NATIVE_BOTTOM_SHEET)
+            ).apply()
+        }
+
+        if (!TextUtils.isEmpty(mFirebaseRemoteConfig!!.getString(INTERSTITIAL_SAVE_QR).trim())) {
+            getSharedPreferences("RemoteConfig", MODE_PRIVATE).edit().putString(
+                INTERSTITIAL_SAVE_QR, mFirebaseRemoteConfig!!.getString(INTERSTITIAL_SAVE_QR)
+            ).apply()
+        }
+
+
+        if (!TextUtils.isEmpty(mFirebaseRemoteConfig!!.getString(BANNER_BOTTOM_TRANSLATION).trim())) {
+            getSharedPreferences("RemoteConfig", MODE_PRIVATE).edit().putString(
+                BANNER_BOTTOM_TRANSLATION, mFirebaseRemoteConfig!!.getString(BANNER_BOTTOM_TRANSLATION)
+            ).apply()
+        }
+
+        if (!TextUtils.isEmpty(mFirebaseRemoteConfig!!.getString(BANNER_BOTTOM_TRANSLATION_CONVERTED).trim())) {
+            getSharedPreferences("RemoteConfig", MODE_PRIVATE).edit().putString(
+                BANNER_BOTTOM_TRANSLATION_CONVERTED, mFirebaseRemoteConfig!!.getString(BANNER_BOTTOM_TRANSLATION_CONVERTED)
+            ).apply()
+        }
+
+        if (!TextUtils.isEmpty(mFirebaseRemoteConfig!!.getString(NATIVE_CREATE_DOCUMENT).trim())) {
+            getSharedPreferences("RemoteConfig", MODE_PRIVATE).edit().putString(
+                NATIVE_CREATE_DOCUMENT, mFirebaseRemoteConfig!!.getString(NATIVE_CREATE_DOCUMENT)
+            ).apply()
+        }
+
+        if (!TextUtils.isEmpty(mFirebaseRemoteConfig!!.getString(NATIVE_SAVE_DOCUMENT).trim())) {
+            getSharedPreferences("RemoteConfig", MODE_PRIVATE).edit().putString(
+                NATIVE_SAVE_DOCUMENT, mFirebaseRemoteConfig!!.getString(NATIVE_SAVE_DOCUMENT)
+            ).apply()
+        }
 
         onComplete?.invoke()
     }
@@ -744,7 +872,7 @@ class FOFActivity : AppCompatActivity() {
     @SuppressLint("SuspiciousIndentation")
     private fun loadAdmobBannerAd() {
 
-        val placementID = firstOpenFlowAdIds?.get("ADMOB_BANNER_SPLASH")
+        val placementID = firstOpenFlowAdIds.get("ADMOB_BANNER_SPLASH")
             ?: resources.getString(R.string.ADMOB_BANNER_SPLASH)
         Log.i("placementID", "placementID=$placementID")
 
@@ -785,15 +913,20 @@ class FOFActivity : AppCompatActivity() {
         if (isNotificationEnabled)
             StickyNotification.showNotification(this@FOFActivity)
         saveAllValuesForInsideAppAds {
-            // Retrieve the action passed from the notification
-            val action = intent.getStringExtra("action")
+            if (isNotificationEnabled)
+                    StickyNotification.showNotification(this@FOFActivity)
 
-            val homeIntent = Intent(this@FOFActivity, HomeActivity::class.java).apply {
-                putExtra("action", action)  // Pass the action to HomeActivity
-            }
-            startActivity(homeIntent)
-            finish() // Finish FirstOpenActivity to prevent users from coming back here
-        }}
+                // Retrieve the action passed from the notification
+                val action = intent.getStringExtra("action")
+
+                // Now, launch HomeActivity with the action
+                val homeIntent = Intent(this@FOFActivity, HomeActivity::class.java).apply {
+                    putExtra("action", action)  // Pass the action to HomeActivity
+                }
+                startActivity(homeIntent)
+                finish() // Finish FirstOpenActivity to prevent users from coming back here
+        }
+    }
 
     private fun setUpWelcomeScreen(context: Context): View {
         val localizedConfig =
@@ -812,9 +945,11 @@ class FOFActivity : AppCompatActivity() {
             welcomeScreenView.findViewById<AppCompatTextView>(R.id.txtCreateBarCode)
         val txtPhotoTranslator =
             welcomeScreenView.findViewById<AppCompatTextView>(R.id.txtCreatePDF)
-        val txtInstantSticker = welcomeScreenView.findViewById<AppCompatTextView>(R.id.txtTranslateImage)
-        val txtSearchImage = welcomeScreenView.findViewById<AppCompatTextView>(R.id.txtSearchImage)
-        val txtSearchProduct = welcomeScreenView.findViewById<AppCompatTextView>(R.id.txtSearchProduct)
+        val txtInstantSticker =
+            welcomeScreenView.findViewById<AppCompatTextView>(R.id.txtTranslateImage)
+//        val txtSearchImage = welcomeScreenView.findViewById<AppCompatTextView>(R.id.txtSearchImage)
+//        val txtSearchProduct =
+//            welcomeScreenView.findViewById<AppCompatTextView>(R.id.txtSearchProduct)
 
         var txtWallpapersBool = false
         var txtEditorBool = false
@@ -822,8 +957,8 @@ class FOFActivity : AppCompatActivity() {
         var txtPhotoOnKeyboardBool = false
         var txtPhotoTranslatorBool = false
         var txtInstantStickerBool = false
-        var txtSearchImageBool = false
-        var txtSearchProductBool = false
+//        var txtSearchImageBool = false
+//        var txtSearchProductBool = false
 
         val nextButton = welcomeScreenView.findViewById<AppCompatTextView>(R.id.txtNext)
 

@@ -16,7 +16,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
-import apero.aperosg.monetization.util.showNativeAd
 import com.qrcodescanner.barcodereader.qrgenerator.myapplication.MyApplication
 import com.qrcodescanner.barcodereader.qrgenerator.R
 import com.qrcodescanner.barcodereader.qrgenerator.activities.HomeActivity
@@ -25,7 +24,7 @@ import com.qrcodescanner.barcodereader.qrgenerator.adapters.SocialAdapter
 import com.qrcodescanner.barcodereader.qrgenerator.ads.CustomFirebaseEvents
 import com.qrcodescanner.barcodereader.qrgenerator.ads.NetworkCheck
 import com.qrcodescanner.barcodereader.qrgenerator.models.SocialItem
-import com.qrcodescanner.barcodereader.qrgenerator.utils.AdsProvider
+
 
 class CreateQRurlFragment : Fragment() {
     private lateinit var socialAdapter: SocialAdapter
@@ -43,7 +42,7 @@ class CreateQRurlFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        (requireActivity() as HomeActivity).reloadAds()
+//        (requireActivity() as HomeActivity).reloadAds()
         CustomFirebaseEvents.logEvent(
             context = requireActivity(),
             screenName = "App display Create QR code screen",
@@ -271,20 +270,20 @@ class CreateQRurlFragment : Fragment() {
             "RemoteConfig", AppCompatActivity.MODE_PRIVATE
         ).getBoolean("native_create", true)
 
-// Configure and load the ad only if it's enabled and network is available
-        if (NetworkCheck.isNetworkAvailable(requireContext()) && isAdEnabled) {
-            AdsProvider.nativeCreate.config(isAdEnabled)
-            AdsProvider.nativeCreate.loadAds(MyApplication.getApplication())
-
-            binding.layoutAdNative.visibility = View.VISIBLE
-            showNativeAd(
-                AdsProvider.nativeCreate,
-                binding.layoutAdNative,
-                R.layout.layout_home_native_ad
-            )
-        } else {
-            binding.layoutAdNative.visibility = View.GONE
-        }
+//// Configure and load the ad only if it's enabled and network is available
+//        if (NetworkCheck.isNetworkAvailable(requireContext()) && isAdEnabled) {
+//            AdsProvider.nativeCreate.config(isAdEnabled)
+//            AdsProvider.nativeCreate.loadAds(MyApplication.getApplication())
+//
+//            binding.layoutAdNative.visibility = View.VISIBLE
+//            showNativeAd(
+//                AdsProvider.nativeCreate,
+//                binding.layoutAdNative,
+//                R.layout.layout_home_native_ad
+//            )
+//        } else {
+//            binding.
+//        }
 
 
         val TopText: TextView = requireActivity().findViewById(R.id.mainText)
@@ -302,7 +301,7 @@ class CreateQRurlFragment : Fragment() {
         if (setting != null) {
             setting.visibility = View.INVISIBLE
         }
-        val download = requireActivity().findViewById<ImageView>(R.id.ivDownload)
+        val download = requireActivity().findViewById<TextView>(R.id.ivDownload)
         if (download != null) {
             download.visibility = View.GONE
         }
@@ -312,7 +311,6 @@ class CreateQRurlFragment : Fragment() {
             ivClose.setImageResource(R.drawable.ic_premium)
             ivClose.visibility = View.INVISIBLE
         }
-
     }
 
     private fun isNavControllerAdded() {

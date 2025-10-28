@@ -56,7 +56,7 @@ class CropperImageSearchFragment : Fragment() {
         CustomFirebaseEvents.logEvent(context = requireActivity(), eventName = "crop_scr")
         val activity = requireActivity() as HomeActivity
         activity.updateAdLayoutVisibility(shouldShowAd = true)
-        activity.reloadAds()
+//        activity.reloadAds()
         val args: CropperImageSearchFragmentArgs by navArgs()
         imagePath = args.imagePath
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
@@ -170,7 +170,7 @@ class CropperImageSearchFragment : Fragment() {
         if (setting != null) {
             setting.visibility = View.INVISIBLE
         }
-        val download = requireActivity().findViewById<ImageView>(R.id.ivDownload)
+        val download = requireActivity().findViewById<TextView>(R.id.ivDownload)
         if (download != null) {
             download.visibility = View.GONE
         }

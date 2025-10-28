@@ -16,6 +16,8 @@ import android.media.ToneGenerator
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.provider.MediaStore
@@ -55,7 +57,7 @@ import com.qrcodescanner.barcodereader.qrgenerator.R
 import com.qrcodescanner.barcodereader.qrgenerator.databinding.FragmentScanCodeBinding
 import com.qrcodescanner.barcodereader.qrgenerator.ads.CustomFirebaseEvents
 import com.qrcodescanner.barcodereader.qrgenerator.database.QRCodeDatabaseHelper
-import com.qrcodescanner.barcodereader.qrgenerator.utils.AdsProvider
+
 import com.qrcodescanner.barcodereader.qrgenerator.utils.inter_scan
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -65,6 +67,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.core.graphics.drawable.toDrawable
+import com.qrcodescanner.barcodereader.qrgenerator.ads.InterstitialClassAdMob
+import com.qrcodescanner.barcodereader.qrgenerator.utils.RemoteConfigKeys.INTERSTITIAL_SCAN_QR
 
 class ScanCode : Fragment() {
     companion object {
@@ -105,7 +109,7 @@ class ScanCode : Fragment() {
 
         // Set up image analysis
         imageAnalysis = ImageAnalysis.Builder().setTargetRotation(activity?.windowManager?.defaultDisplay?.rotation ?: Surface.ROTATION_0).build()
-
+        requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.appBlue)
         CustomFirebaseEvents.logEvent(
             context = requireActivity(),
             screenName = "Scan QR barcode screen",
@@ -370,18 +374,39 @@ class ScanCode : Fragment() {
         CoroutineScope(Dispatchers.IO).launch {
             saveQRCodeToDatabase(qrCode, icon)
             withContext(Dispatchers.Main) {
-                if (!AdsProvider.interScan.isAdReady()) {
-                    navigateToNextFragment(qrCode,isQRCode)
-                    isScanInProgress = false
-                } else {
-                    AdsProvider.interScan.showAds(
-                        activity = requireActivity(),
-                        onNextAction = { adShown ->
-                            navigateToNextFragment(qrCode, isQRCode)
-                            isScanInProgress = false
+                if (com.manual.mediation.library.sotadlib.utils.NetworkCheck.isNetworkAvailable(context)
+                    && requireActivity().getSharedPreferences("RemoteConfig", Context.MODE_PRIVATE)
+                        .getString(INTERSTITIAL_SCAN_QR, "ON").equals("ON", ignoreCase = true)
+                ) {
+                    InterstitialClassAdMob.showIfAvailableOrLoadAdMobInterstitial(
+                        context = context,
+                        "Translation",
+                        onAdClosedCallBackAdmob = {
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                navigateToNextFragment(qrCode,isQRCode)
+                                isScanInProgress = false
+                            }, 300)
+                        },
+                        onAdShowedCallBackAdmob = {
                         }
                     )
+                } else {
+                    navigateToNextFragment(qrCode,isQRCode)
+                    isScanInProgress = false
                 }
+
+//                if (!AdsProvider.interScan.isAdReady()) {
+//                    navigateToNextFragment(qrCode,isQRCode)
+//                    isScanInProgress = false
+//                } else {
+//                    AdsProvider.interScan.showAds(
+//                        activity = requireActivity(),
+//                        onNextAction = { adShown ->
+//                            navigateToNextFragment(qrCode, isQRCode)
+//                            isScanInProgress = false
+//                        }
+//                    )
+//                }
             }
         }
     }
@@ -540,14 +565,6 @@ class ScanCode : Fragment() {
         super.onResume()
         isNavControllerAdded()
 
-        AdsProvider.interScan.config(
-            requireActivity().getSharedPreferences(
-                "RemoteConfig",
-                AppCompatActivity.MODE_PRIVATE
-            ).getBoolean(inter_scan, true)
-        )
-        AdsProvider.interScan.loadAds(MyApplication.getApplication())
-
         if (ContextCompat.checkSelfPermission(
                 requireContext(),
                 Manifest.permission.CAMERA
@@ -556,7 +573,7 @@ class ScanCode : Fragment() {
             setupCamera()
         }
 
-        val download = requireActivity().findViewById<ImageView>(R.id.ivDownload)
+        val download = requireActivity().findViewById<TextView>(R.id.ivDownload)
         if (download != null) {
             download.visibility = View.GONE
         }

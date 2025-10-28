@@ -1,5 +1,6 @@
 package com.qrcodescanner.barcodereader.qrgenerator.database
 
+import android.content.res.Resources
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
@@ -36,7 +37,12 @@ class QRCodeAdapter(
         holder.qrCodeTextView.text = qrCodeData.qrCode
         holder.dateTextView.text = qrCodeData.date
         holder.timeTextView.text = qrCodeData.time
-        holder.drawableImageView.setImageResource(qrCodeData.drawable)
+        try {
+            holder.drawableImageView.setImageResource(qrCodeData.drawable)
+        } catch (e: Resources.NotFoundException) {
+            holder.drawableImageView.setImageResource(R.drawable.ic_website_qr) // fallback image
+        }
+
 
         if (selectedItemPosition == position) {
             holder.itemView.setBackgroundColor(Color.LTGRAY) // Highlight selected item
